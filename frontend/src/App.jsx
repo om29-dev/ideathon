@@ -19,6 +19,7 @@ function App() {
   const [niftyData, setNiftyData] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState(null);
+  const [theme, setTheme] = useState('light');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -36,7 +37,6 @@ function App() {
   }, []);
 
   const generateNiftyData = () => {
-    // Generate mock Nifty data
     const data = [];
     let value = 18500;
     for (let i = 0; i < 20; i++) {
@@ -60,6 +60,13 @@ function App() {
     } catch (error) {
       setConnectionStatus('disconnected');
     }
+  };
+
+  const cycleTheme = () => {
+    const themes = ['light', 'dark', 'market'];
+    const currentIndex = themes.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    setTheme(themes[nextIndex]);
   };
 
   const renderMarkdown = (text) => {
@@ -256,6 +263,56 @@ function App() {
     setModalData(null);
   };
 
+  const downloadCSV = async (excelData) => {
+    try {
+      // Convert Excel data to CSV format
+      const csvData = convertToCSV(excelData);
+      
+      // Create a Blob object with CSV data
+      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generate filename with current timestamp
+      const now = new Date();
+      const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+      link.setAttribute('download', `expenses_${timestamp}.csv`);
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      // Clean up
+      URL.revokeObjectURL(url);
+      
+      setUserTokens(prev => prev + 5);
+    } catch (error) {
+      console.error('Error downloading CSV file:', error);
+      alert('Failed to download CSV file. Please try again.');
+    }
+  };
+
+  const convertToCSV = (excelData) => {
+    if (!excelData || !excelData.expenses) return "Date,Category,Amount,Description\n";
+    
+    let csvContent = "Date,Category,Amount,Description\n";
+    
+    excelData.expenses.forEach(expense => {
+      const date = expense.date || new Date().toISOString().split('T')[0];
+      const category = expense.category || 'Uncategorized';
+      const amount = expense.amount || 0;
+      const description = expense.description || '';
+      
+      csvContent += `"${date}","${category}",${amount},"${description}"\n`;
+    });
+    
+    return csvContent;
+  };
+
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!inputMessage.trim() || isLoading) return;
@@ -357,12 +414,29 @@ function App() {
     );
   };
 
+  const getThemeIcon = () => {
+    switch (theme) {
+      case 'light': return '☀️';
+      case 'dark': return '🌙';
+      case 'market': return '📈';
+      default: return '🎨';
+    }
+  };
+
   return (
-    <div className="App student-theme light-theme">
-      <div className="student-background">
-        <div className="floating-icon">📚</div>
-        <div className="floating-icon">💰</div>
-        <div className="floating-icon">📱</div>
+    <div className={`App theme-${theme}`}>
+      <div className="theme-background">
+        {theme === 'market' && (
+          <>
+            <div className="stock-grid"></div>
+            <div className="market-icons">
+              <div className="market-icon">📈</div>
+              <div className="market-icon">📉</div>
+              <div className="market-icon">💹</div>
+              <div className="market-icon">📊</div>
+            </div>
+          </>
+        )}
       </div>
       
       <header className="app-header">
@@ -370,7 +444,12 @@ function App() {
           <span className="ai-icon">🤖</span>
           <h1>AI Finance Assistant</h1>
         </div>
-        {getStatusBadge()}
+        <div className="header-controls">
+          {getStatusBadge()}
+          <button className="theme-switcher" onClick={cycleTheme}>
+            {getThemeIcon()} Theme
+          </button>
+        </div>
       </header>
 
       <div className="app-body">
@@ -421,6 +500,12 @@ function App() {
                         className="download-btn"
                       >
                         📊 Download Excel
+                      </button>
+                      <button 
+                        onClick={() => downloadCSV(message.excelData)}
+                        className="download-btn csv-btn"
+                      >
+                        📝 Download CSV
                       </button>
                       <button 
                         onClick={() => viewSummary(message.excelData)}
