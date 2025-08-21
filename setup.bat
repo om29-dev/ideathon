@@ -1,5 +1,5 @@
 @echo off
-echo Setting up Gemini Chat Application...
+echo Setting up AI Finance Assistant Application...
 echo.
 
 echo 1. Setting up Python backend...
@@ -30,7 +30,7 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo 2. Setting up React frontend...
+echo 2. Setting up React frontend with Vite...
 cd ..\frontend
 
 echo Installing Node.js dependencies...
@@ -44,12 +44,18 @@ if %errorlevel% neq 0 (
 cd ..
 
 echo.
-echo ✅ Setup complete!
+echo ✅ Setup complete! Your React + Vite application is ready!
 echo.
 echo Next steps:
 echo 1. Get a Gemini API key from: https://makersuite.google.com/app/apikey
 echo 2. Copy backend\.env.example to backend\.env
 echo 3. Add your API key to backend\.env
 echo 4. Run start.bat to launch the application
+echo.
+echo Features:
+echo • Lightning-fast development with Vite
+echo • Hot Module Replacement (HMR)
+echo • Optimized build process
+echo • Modern React development experience
 echo.
 pause

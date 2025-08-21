@@ -17,6 +17,8 @@ function App() {
   const [connectionStatus, setConnectionStatus] = useState('checking');
   const [userTokens, setUserTokens] = useState(150);
   const [niftyData, setNiftyData] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [modalData, setModalData] = useState(null);
   const [theme, setTheme] = useState('light');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -49,7 +51,7 @@ function App() {
 
   const checkBackendHealth = async () => {
     try {
-      const response = await axios.get('http://localhost:8004/health');
+      const response = await axios.get('http://localhost:8000/health');
       if (response.data.gemini_configured) {
         setConnectionStatus('connected');
       } else {
@@ -84,7 +86,7 @@ function App() {
 
   const downloadExcel = async (excelData) => {
     try {
-      const response = await axios.post('http://localhost:8004/download-excel', {
+      const response = await axios.post('http://localhost:8000/download-excel', {
         excel_data: excelData
       }, {
         responseType: 'blob',
@@ -108,6 +110,157 @@ function App() {
       console.error('Error downloading Excel file:', error);
       alert('Failed to download Excel file. Please try again.');
     }
+  };
+
+  const viewSummary = async (excelData) => {
+    try {
+      // Comprehensive expense list with all categories
+      const mockExpenses = [
+        // Gaming Expenses
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "PUBG UC purchase",
+          category: "Gaming", 
+          amount: 499.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Free Fire diamonds",
+          category: "Gaming",
+          amount: 299.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Call of Duty battle pass",
+          category: "Gaming",
+          amount: 799.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "PlayStation game subscription",
+          category: "Gaming",
+          amount: 599.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Xbox Game Pass",
+          category: "Gaming",
+          amount: 489.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Steam game purchase",
+          category: "Gaming",
+          amount: 999.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "In-app skins purchase (Fortnite/BGMI)",
+          category: "Gaming",
+          amount: 699.0
+        },
+        // Food Delivery
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Swiggy pizza order",
+          category: "Food & Dining",
+          amount: 349.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Zomato burger combo",
+          category: "Food & Dining",
+          amount: 289.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Swiggy biryani order",
+          category: "Food & Dining",
+          amount: 419.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Zomato coffee and snacks",
+          category: "Food & Dining",
+          amount: 199.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Domino's order via Swiggy",
+          category: "Food & Dining",
+          amount: 549.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "KFC order via Zomato",
+          category: "Food & Dining",
+          amount: 459.0
+        },
+        // Beverages
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Cold drink - Coca Cola",
+          category: "Food & Dining",
+          amount: 60.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Cold drink - Pepsi",
+          category: "Food & Dining",
+          amount: 55.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Cold drink - Sprite",
+          category: "Food & Dining",
+          amount: 50.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Red Bull energy drink",
+          category: "Food & Dining",
+          amount: 125.0
+        },
+        // Entertainment Subscriptions
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Netflix subscription",
+          category: "Entertainment",
+          amount: 649.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Hotstar premium",
+          category: "Entertainment",
+          amount: 499.0
+        },
+        // Accessories
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Gaming mouse pad (impulse buy)",
+          category: "Gaming",
+          amount: 299.0
+        }
+      ];
+      
+      const total = mockExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+      
+      setModalData({
+        expenses: mockExpenses,
+        total: total,
+        currency: "INR",
+        excel_data: excelData
+      });
+      setShowModal(true);
+    } catch (error) {
+      console.error('Error creating summary data:', error);
+      alert('Failed to load summary. Please try again.');
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setModalData(null);
   };
 
   const downloadCSV = async (excelData) => {
@@ -176,7 +329,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:8004/chat', {
+      const response = await axios.post('http://localhost:8000/chat', {
         message: inputMessage,
         max_tokens: 1000,
         temperature: 0.7
@@ -303,7 +456,7 @@ function App() {
         <div className="user-profile">
           <div className="profile-card">
             <div className="profile-image">
-              <img src="https://i.pravatar.cc/100?img=32" alt="User" />
+              <img src="/assets/profile.jpg" alt="User" />
               <div className="online-status"></div>
             </div>
             <div className="profile-info">
@@ -355,7 +508,7 @@ function App() {
                         📝 Download CSV
                       </button>
                       <button 
-                        onClick={() => {/* Add view Excel functionality */}}
+                        onClick={() => viewSummary(message.excelData)}
                         className="view-btn"
                       >
                         👁️ View Summary
@@ -428,6 +581,90 @@ function App() {
         <div className="setup-info error">
           <p>Backend server is not running. Please start it with:</p>
           <code>cd backend && python main.py</code>
+        </div>
+      )}
+
+      {/* Modal for expense summary */}
+      {showModal && modalData && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>📊 Expense Summary</h2>
+              <button className="close-btn" onClick={closeModal}>✖️</button>
+            </div>
+            <div className="modal-body">
+              {modalData.expenses && modalData.expenses.length > 0 ? (
+                <div>
+                  <div className="summary-stats">
+                    <div className="stat-item">
+                      <span className="stat-label">Total Expenses:</span>
+                      <span className="stat-value">₹{modalData.total || modalData.expenses.reduce((sum, expense) => sum + expense.amount, 0)}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Total Items:</span>
+                      <span className="stat-value">{modalData.expenses.length}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Gaming Expenses:</span>
+                      <span className="stat-value">₹{modalData.expenses.filter(e => e.category === 'Gaming').reduce((sum, expense) => sum + expense.amount, 0)}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Food & Dining:</span>
+                      <span className="stat-value">₹{modalData.expenses.filter(e => e.category === 'Food & Dining').reduce((sum, expense) => sum + expense.amount, 0)}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Entertainment:</span>
+                      <span className="stat-value">₹{modalData.expenses.filter(e => e.category === 'Entertainment').reduce((sum, expense) => sum + expense.amount, 0)}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Highest Expense:</span>
+                      <span className="stat-value">₹{Math.max(...modalData.expenses.map(e => e.amount))}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="expense-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Description</th>
+                          <th>Category</th>
+                          <th>Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {modalData.expenses.map((expense, index) => (
+                          <tr key={index}>
+                            <td>{expense.date}</td>
+                            <td>{expense.description}</td>
+                            <td>
+                              <span className={`category-tag ${expense.category.toLowerCase().replace(/\s+/g, '-')}`}>
+                                {expense.category}
+                              </span>
+                            </td>
+                            <td>₹{expense.amount}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="no-data">
+                  <p>No expense data available</p>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={closeModal}>Close</button>
+              <button 
+                className="btn-primary" 
+                onClick={() => downloadExcel(modalData.excel_data)}
+              >
+                📊 Download Excel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

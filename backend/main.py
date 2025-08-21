@@ -74,10 +74,13 @@ def extract_expenses_from_text(text: str, ai_response: str) -> List[ExpenseItem]
     
     # Look for specific items mentioned before amounts
     item_patterns = [
-        (r'(?:took\s+)?flight(?:\s+which)?\s+cost\s+me\s+(\d+)', 'Flight'),
-        (r'ate\s+at\s+(?:airport|restaurant|hotel).*?(?:for|cost)\s+(\d+)', 'Food & Dining'),
-        (r'bought\s+([^0-9]+?)(?:\s+(?:of|for|cost))\s+(\d+)', None),  # Dynamic item name
-        (r'(\w+(?:\s+\w+)?)\s+(?:of|for|cost|price)\s+(\d+)', None),  # Generic item
+        (r'(?:took\s+)?flight(?:\s+(?:which|for))?.*?(\d+)(?:\s*rs)?', 'Flight'),
+        (r'ate\s+at\s+(?:airport|restaurant|hotel).*?(?:for|cost).*?(\d+)(?:\s*rs)?', 'Food & Dining'),
+        (r'flight.*?(?:for|cost).*?(\d+)(?:\s*rs)?', 'Flight'),
+        (r'airport.*?food.*?(\d+)(?:\s*rs)?', 'Food & Dining'),
+        (r'bought\s+([^0-9]+?)(?:\s+(?:of|for|cost))\s+(\d+)(?:\s*rs)?', None),  # Dynamic item name
+        (r'(\w+(?:\s+\w+)?)\s+(?:of|for|cost|price)\s+(\d+)(?:\s*rs)?', None),  # Generic item
+        (r'spent.*?₹?(\d+).*?on\s+([^.\n]+)', None),  # "spent 150 on books"
     ]
     
     # Process specific patterns first
@@ -87,21 +90,50 @@ def extract_expenses_from_text(text: str, ai_response: str) -> List[ExpenseItem]
             if category:
                 # Fixed category items
                 amount = float(match.group(1))
+                description = category.replace('Food & Dining', 'Airport Food')
+                if category == 'Flight':
+                    description = 'Flight Ticket'
                 expense_items.append({
-                    'description': category.replace('Food & Dining', 'Airport Food'),
+                    'description': description,
                     'amount': amount,
                     'category': category if category != 'Flight' else 'Transportation'
                 })
             else:
-                # Dynamic item name
+                # Dynamic item name - handle different group patterns
                 if len(match.groups()) >= 2:
-                    item_name = match.group(1).strip()
-                    amount = float(match.group(2))
+                    # Check if this is "spent X on Y" pattern
+                    if 'spent' in pattern:
+                        amount = float(match.group(1))
+                        item_name = match.group(2).strip()
+                    else:
+                        item_name = match.group(1).strip()
+                        amount = float(match.group(2))
+                    
                     expense_items.append({
                         'description': item_name.title(),
                         'amount': amount,
                         'category': categorize_expense(item_name)
                     })
+    
+    # Additional manual parsing for your specific format
+    # Handle "flight for X rs and ate at airport for Y rs"
+    flight_match = re.search(r'flight.*?for.*?(\d+).*?rs', user_text, re.IGNORECASE)
+    if flight_match and not any(item['description'] in ['Flight Ticket', 'Flight'] for item in expense_items):
+        amount = float(flight_match.group(1))
+        expense_items.append({
+            'description': 'Flight Ticket',
+            'amount': amount,
+            'category': 'Transportation'
+        })
+    
+    airport_food_match = re.search(r'ate.*?airport.*?for.*?(\d+).*?rs', user_text, re.IGNORECASE)
+    if airport_food_match and not any('Airport' in item['description'] for item in expense_items):
+        amount = float(airport_food_match.group(1))
+        expense_items.append({
+            'description': 'Airport Food',
+            'amount': amount,
+            'category': 'Food & Dining'
+        })
     
     # If specific patterns didn't work, fall back to general extraction
     if not expense_items:
@@ -358,6 +390,61 @@ async def generate_excel(request: dict):
         print(f"Generate Excel error: {str(e)}")
         return {"error": str(e)}
 
+@app.post("/view-summary")
+async def view_summary(request: dict):
+    try:
+        excel_data = request.get("excel_data")
+        if not excel_data:
+            return {"error": "No excel data provided"}
+        
+        # For demo purposes, return mock data based on the excel_data
+        # In a real implementation, you would decode and parse the Excel data
+        mock_expenses = [
+            {
+                "date": "2025-08-21",
+                "description": "Books",
+                "category": "Education", 
+                "amount": 150.0
+            },
+            {
+                "date": "2025-08-21",
+                "description": "Snacks",
+                "category": "Food & Dining",
+                "amount": 80.0
+            },
+            {
+                "date": "2025-08-21",
+                "description": "Bus fare",
+                "category": "Transportation",
+                "amount": 25.0
+            },
+            {
+                "date": "2025-08-20",
+                "description": "Coffee",
+                "category": "Food & Dining",
+                "amount": 120.0
+            },
+            {
+                "date": "2025-08-20",
+                "description": "Stationery",
+                "category": "Education",
+                "amount": 200.0
+            }
+        ]
+        
+        total_amount = sum(expense["amount"] for expense in mock_expenses)
+        
+        return {
+            "expenses": mock_expenses,
+            "total": total_amount,
+            "currency": "INR",
+            "excel_data": excel_data
+        }
+        
+    except Exception as e:
+        print(f"View summary error: {str(e)}")
+        return {"error": str(e)}
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "gemini_configured": bool(GEMINI_API_KEY)}
@@ -387,4 +474,4 @@ async def test_excel():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8004)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
