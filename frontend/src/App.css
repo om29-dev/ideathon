@@ -1,4 +1,4 @@
-/* App.css - Light Student Finance Theme */
+/* App.css - Light Student Finance Theme with Nifty Charts */
 * {
   margin: 0;
   padding: 0;
@@ -17,6 +17,8 @@
   --warning: #f9c74f;
   --danger: #f94144;
   --shadow: rgba(0, 0, 0, 0.1);
+  --positive: #4cc9f0;
+  --negative: #f94144;
 }
 
 body {
@@ -251,6 +253,63 @@ body {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
+/* Nifty Chart Styles */
+.nifty-section {
+  background: var(--light-card);
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px var(--shadow);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.nifty-chart {
+  width: 100%;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.chart-header h4 {
+  color: var(--text-dark);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.chart-value {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.chart-value.positive {
+  color: var(--positive);
+}
+
+.chart-value.negative {
+  color: var(--negative);
+}
+
+.chart-container {
+  width: 100%;
+  height: 80px;
+  margin-bottom: 0.5rem;
+}
+
+.chart-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-light);
+}
+
 .financial-tips {
   background: var(--light-card);
   border-radius: 18px;
@@ -308,57 +367,8 @@ body {
   justify-content: flex-start;
 }
 
-.message.robo {
-  justify-content: flex-start;
-}
-
 .message.error {
   justify-content: center;
-}
-
-.robo-avatar {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #ff6b6b, #ff9e7d);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-  margin-top: 0.5rem;
-}
-
-.robo-face {
-  position: relative;
-  width: 24px;
-  height: 24px;
-}
-
-.robo-eyes {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 4px;
-}
-
-.robo-eye {
-  width: 6px;
-  height: 6px;
-  background: white;
-  border-radius: 50%;
-}
-
-.robo-mouth {
-  width: 12px;
-  height: 4px;
-  background: white;
-  border-radius: 0 0 6px 6px;
-  margin: 0 auto;
-  animation: roboTalk 1.5s infinite;
-}
-
-@keyframes roboTalk {
-  0%, 50%, 100% { height: 4px; }
-  25%, 75% { height: 6px; }
 }
 
 .message-content {
@@ -380,13 +390,6 @@ body {
   color: var(--text-dark);
   border-top-left-radius: 4px;
   border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.message.robo .message-content {
-  background: linear-gradient(135deg, #fff0e5, #ffe0cc);
-  color: #e65100;
-  border-top-left-radius: 4px;
-  border: 1px solid rgba(230, 81, 0, 0.2);
 }
 
 .message.error .message-content {
@@ -553,91 +556,6 @@ body {
   transform: translateY(-2px);
 }
 
-/* Animated AI Assistant */
-.ai-assistant {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  opacity: 0;
-  transform: translateY(100px);
-  transition: all 0.5s ease;
-}
-
-.ai-assistant.active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.ai-avatar {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.ai-face {
-  position: relative;
-  width: 40px;
-  height: 40px;
-}
-
-.ai-eyes {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.ai-eye {
-  width: 8px;
-  height: 8px;
-  background: white;
-  border-radius: 50%;
-  animation: blink 4s infinite;
-}
-
-@keyframes blink {
-  0%, 95%, 100% { transform: scaleY(1); }
-  97% { transform: scaleY(0.1); }
-}
-
-.ai-mouth {
-  width: 16px;
-  height: 6px;
-  background: white;
-  border-radius: 0 0 8px 8px;
-  margin: 0 auto;
-  animation: talk 1.5s infinite;
-}
-
-@keyframes talk {
-  0%, 50%, 100% { height: 6px; }
-  25%, 75% { height: 10px; }
-}
-
-.ai-message {
-  background: white;
-  color: var(--text-dark);
-  padding: 0.75rem 1rem;
-  border-radius: 18px;
-  font-size: 0.9rem;
-  max-width: 200px;
-  box-shadow: 0 4px 12px var(--shadow);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
 .setup-info {
   background: white;
   margin: 1rem auto;
@@ -678,7 +596,7 @@ body {
     flex-wrap: wrap;
   }
   
-  .profile-card, .financial-tips {
+  .profile-card, .nifty-section, .financial-tips {
     flex: 1;
     min-width: 300px;
   }
@@ -705,13 +623,7 @@ body {
     align-items: flex-start;
   }
   
-  .ai-assistant {
-    bottom: 70px;
-    right: 10px;
-    scale: 0.8;
-  }
-  
-  .robo-avatar {
-    display: none;
+  .user-profile {
+    flex-direction: column;
   }
 }

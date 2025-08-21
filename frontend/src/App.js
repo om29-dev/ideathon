@@ -16,7 +16,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('checking');
   const [userTokens, setUserTokens] = useState(150);
-  const [aiAvatarActive, setAiAvatarActive] = useState(false);
+  const [niftyData, setNiftyData] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -30,15 +30,22 @@ function App() {
 
   useEffect(() => {
     checkBackendHealth();
+    generateNiftyData();
   }, []);
 
-  useEffect(() => {
-    if (isLoading) {
-      setAiAvatarActive(true);
-      const timer = setTimeout(() => setAiAvatarActive(false), 3000);
-      return () => clearTimeout(timer);
+  const generateNiftyData = () => {
+    // Generate mock Nifty data
+    const data = [];
+    let value = 18500;
+    for (let i = 0; i < 20; i++) {
+      value += Math.random() * 100 - 50;
+      data.push({
+        time: `${9 + Math.floor(i / 4)}:${(i % 4) * 15}`.padStart(2, '0'),
+        value: Math.round(value)
+      });
     }
-  }, [isLoading]);
+    setNiftyData(data);
+  };
 
   const checkBackendHealth = async () => {
     try {
@@ -128,19 +135,6 @@ function App() {
       };
 
       setMessages(prev => [...prev, botMessage]);
-      
-      // Add robo response after the bot message
-      setTimeout(() => {
-        const roboResponse = {
-          id: Date.now() + 2,
-          text: "Hey there! 👋 I see you're discussing finances. Remember, saving even small amounts regularly can lead to big results over time! 🚀",
-          sender: 'robo',
-          timestamp: new Date().toLocaleTimeString(),
-          hasExpenses: false
-        };
-        setMessages(prev => [...prev, roboResponse]);
-      }, 1000);
-      
       setUserTokens(prev => prev + 5);
     } catch (error) {
       const errorMessage = {
@@ -167,6 +161,47 @@ function App() {
       default:
         return <span className="status-badge checking">⟳ Checking...</span>;
     }
+  };
+
+  const NiftyChart = () => {
+    if (niftyData.length === 0) return null;
+    
+    const values = niftyData.map(d => d.value);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min;
+    
+    const lastValue = values[values.length - 1];
+    const firstValue = values[0];
+    const isPositive = lastValue >= firstValue;
+    
+    return (
+      <div className="nifty-chart">
+        <div className="chart-header">
+          <h4>NIFTY 50</h4>
+          <span className={`chart-value ${isPositive ? 'positive' : 'negative'}`}>
+            {lastValue} {isPositive ? '↗' : '↘'}
+          </span>
+        </div>
+        <div className="chart-container">
+          <svg width="100%" height="80" className="chart-svg">
+            <polyline
+              fill="none"
+              stroke={isPositive ? '#4cc9f0' : '#f94144'}
+              strokeWidth="2"
+              points={niftyData.map((d, i) => 
+                `${(i / (niftyData.length - 1)) * 100},${80 - ((d.value - min) / range) * 70}`
+              ).join(' ')}
+            />
+          </svg>
+        </div>
+        <div className="chart-times">
+          {niftyData.filter((d, i) => i % 4 === 0).map(d => (
+            <span key={d.time}>{d.time}</span>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -208,6 +243,10 @@ function App() {
             </div>
           </div>
           
+          <div className="nifty-section">
+            <NiftyChart />
+          </div>
+          
           <div className="financial-tips">
             <h4>💡 Daily Tip</h4>
             <p>Save ₹50 daily to have ₹18,250 in a year!</p>
@@ -218,17 +257,6 @@ function App() {
           <div className="messages-container">
             {messages.map((message) => (
               <div key={message.id} className={`message ${message.sender}`}>
-                {message.sender === 'robo' && (
-                  <div className="robo-avatar">
-                    <div className="robo-face">
-                      <div className="robo-eyes">
-                        <div className="robo-eye"></div>
-                        <div className="robo-eye"></div>
-                      </div>
-                      <div className="robo-mouth"></div>
-                    </div>
-                  </div>
-                )}
                 <div className="message-content">
                   <div className="message-text">
                     {renderMarkdown(message.text)}
@@ -297,19 +325,6 @@ function App() {
             </div>
           </form>
         </div>
-      </div>
-
-      <div className={`ai-assistant ${aiAvatarActive ? 'active' : ''}`}>
-        <div className="ai-avatar">
-          <div className="ai-face">
-            <div className="ai-eyes">
-              <div className="ai-eye"></div>
-              <div className="ai-eye"></div>
-            </div>
-            <div className="ai-mouth"></div>
-          </div>
-        </div>
-        <div className="ai-message">Let me help with your finances!</div>
       </div>
 
       {connectionStatus === 'no-api-key' && (
