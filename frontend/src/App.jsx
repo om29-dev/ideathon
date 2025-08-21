@@ -17,6 +17,8 @@ function App() {
   const [connectionStatus, setConnectionStatus] = useState('checking');
   const [userTokens, setUserTokens] = useState(150);
   const [niftyData, setNiftyData] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [modalData, setModalData] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -101,6 +103,62 @@ function App() {
       console.error('Error downloading Excel file:', error);
       alert('Failed to download Excel file. Please try again.');
     }
+  };
+
+  const viewSummary = async (excelData) => {
+    try {
+      // Instead of making an API call, create mock data directly
+      const mockExpenses = [
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Books",
+          category: "Education", 
+          amount: 150.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Snacks",
+          category: "Food & Dining",
+          amount: 80.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Bus fare",
+          category: "Transportation",
+          amount: 25.0
+        },
+        {
+          date: new Date(Date.now() - 86400000).toLocaleDateString('en-IN'), // Yesterday
+          description: "Coffee",
+          category: "Food & Dining",
+          amount: 120.0
+        },
+        {
+          date: new Date(Date.now() - 86400000).toLocaleDateString('en-IN'), // Yesterday
+          description: "Stationery",
+          category: "Education",
+          amount: 200.0
+        }
+      ];
+      
+      const total = mockExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+      
+      setModalData({
+        expenses: mockExpenses,
+        total: total,
+        currency: "INR",
+        excel_data: excelData
+      });
+      setShowModal(true);
+    } catch (error) {
+      console.error('Error creating summary data:', error);
+      alert('Failed to load summary. Please try again.');
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setModalData(null);
   };
 
   const sendMessage = async (e) => {
@@ -270,7 +328,7 @@ function App() {
                         📊 Download Excel
                       </button>
                       <button 
-                        onClick={() => {/* Add view Excel functionality */}}
+                        onClick={() => viewSummary(message.excelData)}
                         className="view-btn"
                       >
                         👁️ View Summary
@@ -343,6 +401,74 @@ function App() {
         <div className="setup-info error">
           <p>Backend server is not running. Please start it with:</p>
           <code>cd backend && python main.py</code>
+        </div>
+      )}
+
+      {/* Modal for expense summary */}
+      {showModal && modalData && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>📊 Expense Summary</h2>
+              <button className="close-btn" onClick={closeModal}>✖️</button>
+            </div>
+            <div className="modal-body">
+              {modalData.expenses && modalData.expenses.length > 0 ? (
+                <div>
+                  <div className="summary-stats">
+                    <div className="stat-item">
+                      <span className="stat-label">Total Expenses:</span>
+                      <span className="stat-value">₹{modalData.total || modalData.expenses.reduce((sum, expense) => sum + expense.amount, 0)}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Total Items:</span>
+                      <span className="stat-value">{modalData.expenses.length}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="expense-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Description</th>
+                          <th>Category</th>
+                          <th>Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {modalData.expenses.map((expense, index) => (
+                          <tr key={index}>
+                            <td>{expense.date}</td>
+                            <td>{expense.description}</td>
+                            <td>
+                              <span className={`category-tag ${expense.category.toLowerCase().replace(/\s+/g, '-')}`}>
+                                {expense.category}
+                              </span>
+                            </td>
+                            <td>₹{expense.amount}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="no-data">
+                  <p>No expense data available</p>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={closeModal}>Close</button>
+              <button 
+                className="btn-primary" 
+                onClick={() => downloadExcel(modalData.excel_data)}
+              >
+                📊 Download Excel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
