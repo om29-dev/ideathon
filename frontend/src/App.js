@@ -17,7 +17,7 @@ function App() {
   const [connectionStatus, setConnectionStatus] = useState('checking');
   const [userTokens, setUserTokens] = useState(150);
   const [niftyData, setNiftyData] = useState([]);
-  const [theme, setTheme] = useState('light'); // 'light', 'dark', or 'market'
+  const [theme, setTheme] = useState('light');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -35,7 +35,6 @@ function App() {
   }, []);
 
   const generateNiftyData = () => {
-    // Generate mock Nifty data
     const data = [];
     let value = 18500;
     for (let i = 0; i < 20; i++) {
@@ -109,6 +108,56 @@ function App() {
       console.error('Error downloading Excel file:', error);
       alert('Failed to download Excel file. Please try again.');
     }
+  };
+
+  const downloadCSV = async (excelData) => {
+    try {
+      // Convert Excel data to CSV format
+      const csvData = convertToCSV(excelData);
+      
+      // Create a Blob object with CSV data
+      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generate filename with current timestamp
+      const now = new Date();
+      const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+      link.setAttribute('download', `expenses_${timestamp}.csv`);
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      // Clean up
+      URL.revokeObjectURL(url);
+      
+      setUserTokens(prev => prev + 5);
+    } catch (error) {
+      console.error('Error downloading CSV file:', error);
+      alert('Failed to download CSV file. Please try again.');
+    }
+  };
+
+  const convertToCSV = (excelData) => {
+    if (!excelData || !excelData.expenses) return "Date,Category,Amount,Description\n";
+    
+    let csvContent = "Date,Category,Amount,Description\n";
+    
+    excelData.expenses.forEach(expense => {
+      const date = expense.date || new Date().toISOString().split('T')[0];
+      const category = expense.category || 'Uncategorized';
+      const amount = expense.amount || 0;
+      const description = expense.description || '';
+      
+      csvContent += `"${date}","${category}",${amount},"${description}"\n`;
+    });
+    
+    return csvContent;
   };
 
   const sendMessage = async (e) => {
@@ -298,6 +347,12 @@ function App() {
                         className="download-btn"
                       >
                         📊 Download Excel
+                      </button>
+                      <button 
+                        onClick={() => downloadCSV(message.excelData)}
+                        className="download-btn csv-btn"
+                      >
+                        📝 Download CSV
                       </button>
                       <button 
                         onClick={() => {/* Add view Excel functionality */}}
