@@ -795,6 +795,11 @@ body {
   color: #6a2c8a;
 }
 
+.category-tag.gaming {
+  background: linear-gradient(135deg, #ff9a56, #ff6b35);
+  color: #8b2500;
+}
+
 .no-data {
   text-align: center;
   padding: 3rem;

@@ -107,37 +107,132 @@ function App() {
 
   const viewSummary = async (excelData) => {
     try {
-      // Instead of making an API call, create mock data directly
+      // Comprehensive expense list with all categories
       const mockExpenses = [
+        // Gaming Expenses
         {
           date: new Date().toLocaleDateString('en-IN'),
-          description: "Books",
-          category: "Education", 
-          amount: 150.0
+          description: "PUBG UC purchase",
+          category: "Gaming", 
+          amount: 499.0
         },
         {
           date: new Date().toLocaleDateString('en-IN'),
-          description: "Snacks",
+          description: "Free Fire diamonds",
+          category: "Gaming",
+          amount: 299.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Call of Duty battle pass",
+          category: "Gaming",
+          amount: 799.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "PlayStation game subscription",
+          category: "Gaming",
+          amount: 599.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Xbox Game Pass",
+          category: "Gaming",
+          amount: 489.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Steam game purchase",
+          category: "Gaming",
+          amount: 999.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "In-app skins purchase (Fortnite/BGMI)",
+          category: "Gaming",
+          amount: 699.0
+        },
+        // Food Delivery
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Swiggy pizza order",
           category: "Food & Dining",
-          amount: 80.0
+          amount: 349.0
         },
         {
           date: new Date().toLocaleDateString('en-IN'),
-          description: "Bus fare",
-          category: "Transportation",
-          amount: 25.0
-        },
-        {
-          date: new Date(Date.now() - 86400000).toLocaleDateString('en-IN'), // Yesterday
-          description: "Coffee",
+          description: "Zomato burger combo",
           category: "Food & Dining",
-          amount: 120.0
+          amount: 289.0
         },
         {
-          date: new Date(Date.now() - 86400000).toLocaleDateString('en-IN'), // Yesterday
-          description: "Stationery",
-          category: "Education",
-          amount: 200.0
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Swiggy biryani order",
+          category: "Food & Dining",
+          amount: 419.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Zomato coffee and snacks",
+          category: "Food & Dining",
+          amount: 199.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Domino's order via Swiggy",
+          category: "Food & Dining",
+          amount: 549.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "KFC order via Zomato",
+          category: "Food & Dining",
+          amount: 459.0
+        },
+        // Beverages
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Cold drink - Coca Cola",
+          category: "Food & Dining",
+          amount: 60.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Cold drink - Pepsi",
+          category: "Food & Dining",
+          amount: 55.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Cold drink - Sprite",
+          category: "Food & Dining",
+          amount: 50.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Red Bull energy drink",
+          category: "Food & Dining",
+          amount: 125.0
+        },
+        // Entertainment Subscriptions
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Netflix subscription",
+          category: "Entertainment",
+          amount: 649.0
+        },
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Hotstar premium",
+          category: "Entertainment",
+          amount: 499.0
+        },
+        // Accessories
+        {
+          date: new Date().toLocaleDateString('en-IN'),
+          description: "Gaming mouse pad (impulse buy)",
+          category: "Gaming",
+          amount: 299.0
         }
       ];
       
@@ -423,6 +518,22 @@ function App() {
                     <div className="stat-item">
                       <span className="stat-label">Total Items:</span>
                       <span className="stat-value">{modalData.expenses.length}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Gaming Expenses:</span>
+                      <span className="stat-value">₹{modalData.expenses.filter(e => e.category === 'Gaming').reduce((sum, expense) => sum + expense.amount, 0)}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Food & Dining:</span>
+                      <span className="stat-value">₹{modalData.expenses.filter(e => e.category === 'Food & Dining').reduce((sum, expense) => sum + expense.amount, 0)}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Entertainment:</span>
+                      <span className="stat-value">₹{modalData.expenses.filter(e => e.category === 'Entertainment').reduce((sum, expense) => sum + expense.amount, 0)}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Highest Expense:</span>
+                      <span className="stat-value">₹{Math.max(...modalData.expenses.map(e => e.amount))}</span>
                     </div>
                   </div>
                   
