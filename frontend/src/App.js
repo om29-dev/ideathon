@@ -17,6 +17,7 @@ function App() {
   const [connectionStatus, setConnectionStatus] = useState('checking');
   const [userTokens, setUserTokens] = useState(150);
   const [niftyData, setNiftyData] = useState([]);
+  const [theme, setTheme] = useState('light'); // 'light', 'dark', or 'dynamic'
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -58,6 +59,13 @@ function App() {
     } catch (error) {
       setConnectionStatus('disconnected');
     }
+  };
+
+  const cycleTheme = () => {
+    const themes = ['light', 'dark', 'dynamic'];
+    const currentIndex = themes.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    setTheme(themes[nextIndex]);
   };
 
   const renderMarkdown = (text) => {
@@ -204,12 +212,30 @@ function App() {
     );
   };
 
+  const getThemeIcon = () => {
+    switch (theme) {
+      case 'light': return '☀️';
+      case 'dark': return '🌙';
+      case 'dynamic': return '🔄';
+      default: return '🎨';
+    }
+  };
+
   return (
-    <div className="App student-theme light-theme">
-      <div className="student-background">
-        <div className="floating-icon">📚</div>
-        <div className="floating-icon">💰</div>
-        <div className="floating-icon">📱</div>
+    <div className={`App theme-${theme}`}>
+      <div className="theme-background">
+        {theme === 'dynamic' && (
+          <>
+            <div className="stock-chart-line"></div>
+            <div className="stock-chart-line"></div>
+            <div className="stock-chart-line"></div>
+            <div className="finance-icons">
+              <div className="finance-icon">📈</div>
+              <div className="finance-icon">📉</div>
+              <div className="finance-icon">💹</div>
+            </div>
+          </>
+        )}
       </div>
       
       <header className="app-header">
@@ -217,7 +243,12 @@ function App() {
           <span className="ai-icon">🤖</span>
           <h1>AI Finance Assistant</h1>
         </div>
-        {getStatusBadge()}
+        <div className="header-controls">
+          {getStatusBadge()}
+          <button className="theme-switcher" onClick={cycleTheme}>
+            {getThemeIcon()} Theme
+          </button>
+        </div>
       </header>
 
       <div className="app-body">
