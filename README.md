@@ -1,3 +1,6 @@
+### Note: This is Under Developing Stage
+
+
 # AI Finance Buddy
 
 A full-stack application using React frontend and FastAPI backend with Google's Gemini AI integration and automatic expense tracking capabilities.
