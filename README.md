@@ -210,6 +210,48 @@ The frontend will be available at `http://localhost:3000` and the backend at `ht
 
 2. The backend can serve static files or you can deploy them separately.
 
+## 🚀 Deployment
+
+Multiple deployment options are available for the AI Finance Assistant:
+
+### Quick Deployment Options
+
+1. **GitHub Pages** (Frontend only)
+   ```bash
+   ./deploy.bat  # Windows
+   ./deploy.sh   # Linux/Mac
+   ```
+
+2. **Railway** (Recommended - Full stack)
+   - Connect GitHub repo to Railway
+   - Deploy frontend and backend separately
+   - Set `GEMINI_API_KEY` environment variable
+
+3. **Docker Compose** (Local/VPS)
+   ```bash
+   docker-compose up --build -d
+   ```
+
+4. **Vercel + Railway**
+   - Frontend on Vercel (Edge deployment)
+   - Backend on Railway (Database support)
+
+For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+### Environment Variables for Production
+
+#### Frontend
+```env
+VITE_API_URL=https://your-backend-url.com
+```
+
+#### Backend
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+PORT=8000
+CORS_ORIGINS=https://your-frontend-url.com
+```
+
 ## Environment Variables
 
 ### Backend (.env)

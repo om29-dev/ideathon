@@ -11,7 +11,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "vite"
+    "start": "vite",
+    "deploy:gh": "npm run build && gh-pages -d dist",
+    "deploy:netlify": "npm run build && netlify deploy --prod --dir=dist",
+    "deploy:vercel": "npm run build && vercel --prod"
   },
   "eslintConfig": {
     "extends": [
