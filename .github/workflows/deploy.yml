@@ -1,13 +1,21 @@
-name: Deploy AI Finance Assistant
+name: Deploy AI Finance Assistant to GitHub Pages
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     
     steps:
@@ -21,35 +29,33 @@ jobs:
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
         
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+        
     - name: Install frontend dependencies
       run: |
         cd frontend
         npm ci
         
-    - name: Build frontend
+    - name: Build frontend for GitHub Pages
       run: |
         cd frontend
         npm run build
+      env:
+        NODE_ENV: production
         
-    - name: Setup Python
-      uses: actions/setup-python@v4
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
       with:
-        python-version: '3.9'
-        
-    - name: Install backend dependencies
-      run: |
-        cd backend
-        pip install -r requirements.txt
-        
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main'
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./frontend/dist
-        
-    - name: Deploy backend to Railway (Optional)
-      if: github.ref == 'refs/heads/main'
-      run: |
-        echo "Backend deployment can be configured with Railway, Heroku, or other services"
-        echo "Add your deployment commands here"
+        path: ./frontend/dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

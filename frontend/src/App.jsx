@@ -2,6 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
+// API Configuration
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const IS_DEMO_MODE = !import.meta.env.VITE_API_URL && import.meta.env.NODE_ENV === 'production';
+
 function App() {
   const [messages, setMessages] = useState([
     {
@@ -50,8 +54,13 @@ function App() {
   };
 
   const checkBackendHealth = async () => {
+    if (IS_DEMO_MODE) {
+      setConnectionStatus('demo');
+      return;
+    }
+    
     try {
-      const response = await axios.get('http://localhost:8000/health');
+      const response = await axios.get(`${API_BASE_URL}/health`);
       if (response.data.gemini_configured) {
         setConnectionStatus('connected');
       } else {
@@ -86,7 +95,7 @@ function App() {
 
   const downloadExcel = async (excelData) => {
     try {
-      const response = await axios.post('http://localhost:8000/download-excel', {
+      const response = await axios.post(`${API_BASE_URL}/download-excel`, {
         excel_data: excelData
       }, {
         responseType: 'blob',
@@ -329,23 +338,44 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:8000/chat', {
-        message: inputMessage,
-        max_tokens: 1000,
-        temperature: 0.7
-      });
+      if (IS_DEMO_MODE) {
+        // Demo mode - simulate AI response
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
+        
+        const demoResponse = {
+          id: Date.now() + 1,
+          text: `🤖 **Demo Mode**: This is a simulated response showing how the AI Finance Assistant works!\n\n💡 **Features Available**:\n• Expense tracking and categorization\n• Excel/CSV report generation\n• Multi-theme interface\n• Investment guidance\n\n📊 In the full version, I would analyze your message: "${inputMessage}" and provide personalized financial advice with expense tracking capabilities.\n\n✨ **To use the full version**: Deploy with a backend server and Gemini API key.`,
+          sender: 'bot',
+          timestamp: new Date().toLocaleTimeString(),
+          hasExpenses: inputMessage.toLowerCase().includes('spent') || inputMessage.toLowerCase().includes('paid'),
+          excelData: inputMessage.toLowerCase().includes('spent') || inputMessage.toLowerCase().includes('paid') ? {
+            expenses: [
+              { date: new Date().toLocaleDateString(), description: "Demo expense", category: "Demo", amount: 100 }
+            ]
+          } : null
+        };
+        
+        setMessages(prev => [...prev, demoResponse]);
+        setUserTokens(prev => prev + 5);
+      } else {
+        const response = await axios.post(`${API_BASE_URL}/chat`, {
+          message: inputMessage,
+          max_tokens: 1000,
+          temperature: 0.7
+        });
 
-      const botMessage = {
-        id: Date.now() + 1,
-        text: response.data.response,
-        sender: 'bot',
-        timestamp: new Date().toLocaleTimeString(),
-        hasExpenses: response.data.has_expenses,
-        excelData: response.data.excel_data
-      };
+        const botMessage = {
+          id: Date.now() + 1,
+          text: response.data.response,
+          sender: 'bot',
+          timestamp: new Date().toLocaleTimeString(),
+          hasExpenses: response.data.has_expenses,
+          excelData: response.data.excel_data
+        };
 
-      setMessages(prev => [...prev, botMessage]);
-      setUserTokens(prev => prev + 5);
+        setMessages(prev => [...prev, botMessage]);
+        setUserTokens(prev => prev + 5);
+      }
     } catch (error) {
       const errorMessage = {
         id: Date.now() + 1,
@@ -364,6 +394,8 @@ function App() {
     switch (connectionStatus) {
       case 'connected':
         return <span className="status-badge connected">✓ Connected</span>;
+      case 'demo':
+        return <span className="status-badge demo">🎭 Demo Mode</span>;
       case 'no-api-key':
         return <span className="status-badge warning">⚠ API Key Required</span>;
       case 'disconnected':

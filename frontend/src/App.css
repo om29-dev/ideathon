@@ -220,6 +220,12 @@ body {
   border: 1px solid var(--success);
 }
 
+.status-badge.demo {
+  background-color: rgba(147, 51, 234, 0.2);
+  color: #9333ea;
+  border: 1px solid #9333ea;
+}
+
 .status-badge.warning {
   background-color: rgba(249, 199, 79, 0.2);
   color: var(--warning);
