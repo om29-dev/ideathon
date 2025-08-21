@@ -17,7 +17,7 @@ function App() {
   const [connectionStatus, setConnectionStatus] = useState('checking');
   const [userTokens, setUserTokens] = useState(150);
   const [niftyData, setNiftyData] = useState([]);
-  const [theme, setTheme] = useState('light'); // 'light', 'dark', or 'dynamic'
+  const [theme, setTheme] = useState('light'); // 'light', 'dark', or 'market'
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -62,7 +62,7 @@ function App() {
   };
 
   const cycleTheme = () => {
-    const themes = ['light', 'dark', 'dynamic'];
+    const themes = ['light', 'dark', 'market'];
     const currentIndex = themes.indexOf(theme);
     const nextIndex = (currentIndex + 1) % themes.length;
     setTheme(themes[nextIndex]);
@@ -216,7 +216,7 @@ function App() {
     switch (theme) {
       case 'light': return '☀️';
       case 'dark': return '🌙';
-      case 'dynamic': return '🔄';
+      case 'market': return '📈';
       default: return '🎨';
     }
   };
@@ -224,15 +224,14 @@ function App() {
   return (
     <div className={`App theme-${theme}`}>
       <div className="theme-background">
-        {theme === 'dynamic' && (
+        {theme === 'market' && (
           <>
-            <div className="stock-chart-line"></div>
-            <div className="stock-chart-line"></div>
-            <div className="stock-chart-line"></div>
-            <div className="finance-icons">
-              <div className="finance-icon">📈</div>
-              <div className="finance-icon">📉</div>
-              <div className="finance-icon">💹</div>
+            <div className="stock-grid"></div>
+            <div className="market-icons">
+              <div className="market-icon">📈</div>
+              <div className="market-icon">📉</div>
+              <div className="market-icon">💹</div>
+              <div className="market-icon">📊</div>
             </div>
           </>
         )}
