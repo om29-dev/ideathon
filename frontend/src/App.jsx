@@ -224,7 +224,7 @@ function App() {
         <div className="user-profile">
           <div className="profile-card">
             <div className="profile-image">
-              <img src="https://i.pravatar.cc/100?img=32" alt="User" />
+              <img src="/assets/profile.jpg" alt="User" />
               <div className="online-status"></div>
             </div>
             <div className="profile-info">
