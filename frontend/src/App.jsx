@@ -49,7 +49,7 @@ function App() {
 
   const checkBackendHealth = async () => {
     try {
-      const response = await axios.get('http://localhost:8004/health');
+      const response = await axios.get('http://localhost:8000/health');
       if (response.data.gemini_configured) {
         setConnectionStatus('connected');
       } else {
@@ -77,7 +77,7 @@ function App() {
 
   const downloadExcel = async (excelData) => {
     try {
-      const response = await axios.post('http://localhost:8004/download-excel', {
+      const response = await axios.post('http://localhost:8000/download-excel', {
         excel_data: excelData
       }, {
         responseType: 'blob',
@@ -119,7 +119,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:8004/chat', {
+      const response = await axios.post('http://localhost:8000/chat', {
         message: inputMessage,
         max_tokens: 1000,
         temperature: 0.7
