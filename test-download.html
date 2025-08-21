@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Excel Download Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Excel Download Test</h1>
+    <button onclick="testDownload()">Test Download</button>
+    
+    <script>
+        async function testDownload() {
+            try {
+                // Sample base64 data (you would get this from your chat response)
+                const sampleData = "UEsDBBQAAAAIADFFRVbRsdNSJQAAAM0AAAAQAAAAZG9jUHJvcHMvYXBwLnhtbE3PTQvCMAwG4L9SdreZih6kDkQ9ip68zy51hbYpbYT67%2B0EP255ecgboi6JIia2mEXxLuRtMzLHDUDWI/o%2By8qhiqHke64x3YGMsRoPpB8eA8OibdeAhTEMOMzit7Dp1C5GZ3XPlkJ3sjpRJsPiWDQ6sScfq9wcChDneiU%2BixNLOZcrBf%2BLU8sVU57mym/8ZAW/B7oXUEsDBBQAAAAIADFFRVubZP%2Bf6gAAAMsBAAARAAAAZG9jUHJvcHMvY29yZS54bWylkcFOwzAMhl9l6r11mmoIoiwXECeQkJgE4hYl3lbRpFFi1O7tScvWgeDGMf4/f7YVaYIwfcSn2AeM1GJaja7zSZiwKQ5EQQAkc0CnU5UJn8NdH52m/Ix7CNq86z0CZ%2BwKHJK2mjRMwjIsxuKktGZRho/YzQJrADt06ClBXdVwYQmjS382zMlCjqldqGEYqqGZubxRDa%2BPD8/z8mXrE2lvsFDSGmEiauqjmi4Kx7GT8K0oT7O/Cmh";
+                
+                console.log('Sending download request...');
+                const response = await axios.post('http://localhost:8004/download-excel', {
+                    excel_data: sampleData
+                }, {
+                    responseType: 'blob'
+                });
+
+                console.log('Response received:', response);
+                
+                // Create download
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'test_expenses.xlsx');
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+                
+                alert('Download should have started!');
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
