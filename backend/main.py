@@ -20,7 +20,7 @@ app = FastAPI()
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["*"],  # Allow all origins for development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -359,6 +359,59 @@ async def download_excel(request: dict):
     except Exception as e:
         print(f"Download error: {str(e)}")  # Debug log
         raise HTTPException(status_code=500, detail=f"Error downloading file: {str(e)}")
+
+@app.get("/download/excel")
+async def download_excel_get():
+    """Download Excel file endpoint using GET"""
+    try:
+        # Sample expenses for demo
+        sample_expenses = [
+            ExpenseItem(date="2025-08-20", description="Gaming Purchase", amount=1500.0, category="Entertainment"),
+            ExpenseItem(date="2025-08-20", description="Restaurant Bill", amount=850.0, category="Food & Dining"),
+            ExpenseItem(date="2025-08-20", description="Subscription", amount=299.0, category="Entertainment")
+        ]
+        
+        # Generate Excel file
+        excel_bytes = create_excel_response(sample_expenses)
+        
+        if excel_bytes:
+            return Response(
+                content=excel_bytes,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={"Content-Disposition": "attachment; filename=expenses.xlsx"}
+            )
+        else:
+            raise HTTPException(status_code=500, detail="Failed to generate Excel file")
+            
+    except Exception as e:
+        print(f"Download error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error downloading file: {str(e)}")
+
+@app.get("/download/csv")
+async def download_csv_get():
+    """Download CSV file endpoint using GET"""
+    try:
+        # Sample expenses for demo
+        sample_expenses = [
+            ExpenseItem(date="2025-08-20", description="Gaming Purchase", amount=1500.0, category="Entertainment"),
+            ExpenseItem(date="2025-08-20", description="Restaurant Bill", amount=850.0, category="Food & Dining"),
+            ExpenseItem(date="2025-08-20", description="Subscription", amount=299.0, category="Entertainment")
+        ]
+        
+        # Generate CSV content
+        csv_content = "Date,Description,Amount,Category\n"
+        for expense in sample_expenses:
+            csv_content += f"{expense.date},{expense.description},{expense.amount},{expense.category}\n"
+        
+        return Response(
+            content=csv_content.encode('utf-8'),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=expenses.csv"}
+        )
+            
+    except Exception as e:
+        print(f"CSV download error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error downloading CSV file: {str(e)}")
 
 @app.post("/generate-excel")
 async def generate_excel(request: dict):

@@ -1,13 +1,22 @@
 @echo off
-echo Setting up AI Finance Assistant Application...
+echo ========================================
+echo   AI Finance Assistant - Initial Setup
+echo ========================================
 echo.
 
-echo 1. Setting up Python backend...
-cd backend
+echo This script will set up your development environment.
+echo.
+pause
 
-echo Creating virtual environment...
+echo [1/4] Setting up Python Virtual Environment...
+cd backend
 python -m venv venv
-if %errorlevel% neq 0 (
+if errorlevel 1 (
+    echo Error: Failed to create virtual environment
+    echo Make sure Python 3.8+ is installed
+    pause
+    exit /b 1
+) else if errorlevel 2 (
     echo Error creating virtual environment
     pause
     exit /b 1

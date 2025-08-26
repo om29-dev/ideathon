@@ -1,26 +1,52 @@
 @echo off
-echo Starting AI Finance Assistant Application...
+echo ========================================
+echo   AI Finance Assistant - Flutter App
+echo ========================================
 echo.
 
-echo Starting backend server...
-start "Backend Server" cmd /c "cd backend && venv\Scripts\activate && python main.py"
+echo [1/3] Setting up Python Virtual Environment...
+cd backend
+if not exist "venv" (
+    echo Creating virtual environment...
+    python -m venv venv
+)
 
+echo Activating virtual environment...
+call venv\Scripts\activate.bat
+
+echo Installing Python dependencies...
+pip install -r requirements.txt
+if errorlevel 1 (
+    echo Installing basic dependencies...
+    pip install fastapi uvicorn python-multipart google-generativeai python-dotenv pandas openpyxl
+)
+
+echo [2/3] Starting Python FastAPI Backend...
+start "Backend Server" cmd /k "cd /d %cd% && venv\Scripts\activate.bat && python main.py"
+
+cd ..
 echo Waiting for backend to start...
-timeout /t 3 /nobreak > nul
+timeout /t 5 /nobreak > nul
 
-echo Starting frontend with Vite...
-start "Vite Frontend Server" cmd /c "cd frontend && npm run dev"
+echo [3/3] Starting Flutter Frontend...
+start "Flutter Frontend" cmd /k "cd frontend && flutter run -d chrome"
 
 echo.
-echo ✅ Application is starting with Vite!
+echo ✅ Flutter Application is starting!
 echo.
 echo Backend: http://localhost:8000
-echo Frontend: http://localhost:3000
+echo Frontend: Will open in Chrome browser
 echo.
 echo Features enabled:
-echo • Lightning-fast Hot Module Replacement
-echo • Instant code changes reflection
-echo • Optimized development experience
+• AI-powered chat interface with Gemini AI
+• Real-time expense tracking and categorization
+• Multi-theme support (Light, Dark, Market)
+• Token-based gamification system
+• Export functionality (Excel/CSV)
+• Cross-platform Flutter UI
+• Virtual environment isolation
+echo.
+echo Note: Make sure to set GEMINI_API_KEY in backend/.env file
 echo.
 echo Press any key to exit...
 pause > nul
