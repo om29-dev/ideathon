@@ -1,403 +1,130 @@
 # 🤖 AI Finance Assistant
 
-> **A complete AI-powered personal finance management application with Flutter frontend and FastAPI backend**
+> AI-powered personal finance assistant with a Flutter frontend and FastAPI backend.
 
 [![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
-[![Google Gemini](https://img.shields.io/badge/Google_Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
 
-## ✨ Features
+One-line TL;DR
 
-- 🎯 **AI-Powered Chat Assistant** - Get personalized financial advice using Google Gemini AI
-- 📊 **Expense Tracking** - Automatic expense detection and categorization
-- 📈 **NIFTY 50 Integration** - Real-time stock market data and trends
-- 📱 **Cross-Platform** - Works on Web, Android, iOS, Windows, macOS, and Linux
-- 🌙 **Dual Themes** - Beautiful green light theme and purple dark theme
-- 🔔 **Smart Notifications** - Daily financial tips and reminders
-- 📋 **Export Data** - Download your financial data as Excel/CSV files
-- 💰 **Budget Management** - Track income, expenses, and savings goals
+- Flutter app (web + mobile + desktop) that talks to a FastAPI backend which uses Google Gemini to provide AI-driven finance tips and chat-based expense tracking.
 
-## 🏗️ Project Structure
+Why this README was updated
+
+- This repo ships a Flutter frontend. Previous docs referenced Node/React; those steps have been removed. Use `setup.bat` on Windows for automated setup.
+
+## ✨ Key features
+
+- AI chat assistant (Google Gemini) for financial guidance
+- Expense detection and categorization
+- Export data to CSV/Excel
+- Cross-platform Flutter frontend (Web, Android, iOS, Windows, macOS, Linux)
+- Daily tips and smart notifications
+
+## Project layout (important files)
 
 ```
 ideathon/
-├── backend/                    # FastAPI Python backend
-│   ├── main.py                # Main FastAPI application
-│   ├── config.py              # Configuration settings
-│   ├── requirements.txt       # Python dependencies
-│   ├── tips/                  # Daily tips service
-│   │   └── service.py         # Gemini AI tip generation
-│   └── data/                  # Data storage
-│       └── daily_tip_cache.json
-│
-├── frontend/                   # Flutter mobile/web app
+├── backend/                 # FastAPI backend (Python)
+│   ├── main.py
+│   ├── config.py
+│   └── requirements.txt
+├── frontend/                # Flutter app
 │   ├── lib/
-│   │   ├── main.dart          # Main Flutter application
-│   │   ├── models/            # Data models
-│   │   ├── providers/         # State management
-│   │   ├── screens/           # UI screens
-│   │   ├── widgets/           # Reusable UI components
-│   │   ├── services/          # API and notification services
-│   │   └── src/               # Helper utilities
-│   ├── pubspec.yaml           # Flutter dependencies
-│   ├── android/               # Android-specific configuration
-│   ├── web/                   # Web-specific configuration
-│   └── windows/               # Windows-specific configuration
-│
-├── Generated Data/            # Sample data files
-├── setup.bat                 # Windows setup script
-├── start.bat                 # Complete application launcher
-├── start_backend.bat         # Backend-only launcher
-├── start_flutter.bat         # Frontend-only launcher
-└── README.md                 # This file
+│   │   └── main.dart
+│   └── pubspec.yaml
+├── setup.bat                # Windows automated setup script
+├── start.bat                # Launch both backend and frontend (Windows)
+└── README.md
 ```
 
-## 🚀 Quick Start
+## Quick start (Windows)
 
-### Option 1: Automated Setup (Recommended)
+Recommended: use the automated script which creates a Python venv, installs backend packages, and runs `flutter pub get` for the frontend when Flutter/Dart is available.
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/om29-dev/ideathon.git
-   cd ideathon
-   ```
+1. Clone the repo and open PowerShell in the repo root
 
-2. **Run the setup script**
-   ```cmd
-   setup.bat
-   ```
+```powershell
+git clone https://github.com/om29-dev/ideathon.git
+cd ideathon
+.\setup.bat
+```
 
-3. **Start the application**
-   ```cmd
-   start.bat
-   ```
+If everything completes you can run the app with:
 
-The app will be available at:
-- **Web**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
+```powershell
+.\start.bat
+```
 
-### Option 2: Manual Setup
+Notes:
+- `setup.bat` expects Python (for the backend) and Flutter or Dart (for fetching frontend packages). It no longer tries to run npm.
+- If you prefer manual setup, see the sections below.
 
-#### Prerequisites
+## Manual setup
 
-- **Python 3.8+** - [Download Python](https://python.org/downloads/)
-- **Flutter 3.8.1+** - [Install Flutter](https://docs.flutter.dev/get-started/install)
-- **Git** - [Download Git](https://git-scm.com/downloads)
-- **Google Gemini API Key** - [Get API Key](https://ai.google.dev/)
+Prerequisites
 
-#### Backend Setup
+- Python 3.8+
+- Flutter SDK (for frontend)
+- Git
+- A Google Gemini API key
 
-1. **Navigate to backend directory**
-   ```cmd
-   cd backend
-   ```
+Backend (manual)
 
-2. **Create virtual environment**
-   ```cmd
-   python -m venv venv
-   venv\Scripts\activate
-   ```
+```powershell
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+set GEMINI_API_KEY=your_gemini_api_key_here
+python main.py
+```
 
-3. **Install dependencies**
-   ```cmd
-   pip install -r requirements.txt
-   ```
+Frontend (manual)
 
-4. **Set up environment variables**
-   ```cmd
-   # Create .env file or set environment variable
-   set GEMINI_API_KEY=your_gemini_api_key_here
-   ```
+```powershell
+cd frontend
+flutter pub get
+# Example: run web-server on port 3000
+flutter run -d web-server --web-port=3000
+```
 
-5. **Start the backend server**
-   ```cmd
-   python main.py
-   ```
+## Configuration
 
-#### Frontend Setup
+- Create `backend/.env` or set `GEMINI_API_KEY` in your environment. Example `.env` contents:
 
-1. **Navigate to frontend directory**
-   ```cmd
-   cd frontend
-   ```
-
-2. **Get Flutter dependencies**
-   ```cmd
-   flutter pub get
-   ```
-
-3. **Run on different platforms**
-
-   **Web (Recommended for development):**
-   ```cmd
-   flutter run -d web-server --web-port=3000
-   ```
-
-   **Android (requires Android Studio/emulator):**
-   ```cmd
-   flutter run -d android
-   ```
-
-   **Windows (requires Visual Studio):**
-   ```cmd
-   flutter run -d windows
-   ```
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Create a `.env` file in the `backend/` directory:
-
-```env
+```
 GEMINI_API_KEY=your_google_gemini_api_key
 DEBUG=true
 HOST=0.0.0.0
 PORT=8000
 ```
 
-### Flutter Configuration
+Change the backend URL in `frontend/lib/main.dart` if you need to point the app to a different host/port when running on device.
 
-Update `frontend/lib/main.dart` if needed to change backend URL for different platforms.
+## Running locally
 
-## 📱 Platform Support
+- Backend API: http://localhost:8000 (default)
+- API docs: http://localhost:8000/docs
+- Flutter web (if run with web-server): http://localhost:3000
 
-| Platform | Status | Notes |
-|----------|--------|-------|
-| 🌐 Web | ✅ Fully Supported | Recommended for development |
-| 🤖 Android | ✅ Fully Supported | Requires Android Studio |
-| 🍎 iOS | ✅ Supported | Requires Xcode (macOS only) |
-| 🪟 Windows | ✅ Supported | Requires Visual Studio |
-| 🐧 Linux | ✅ Supported | Native Linux support |
-| 🍎 macOS | ✅ Supported | Native macOS support |
+## Troubleshooting
 
-## 🎨 Themes
+- Backend fails to start: ensure Python 3.8+, install requirements, and set `GEMINI_API_KEY`.
+- Flutter issues: run `flutter clean && flutter pub get`, check `flutter --version`, and ensure required platform tools are installed.
 
-The app features two beautiful themes:
+## Contributing
 
-- **🌿 Light Theme**: Green-based color scheme for a fresh, modern look
-- **🌙 Dark Theme**: Purple-based color scheme for comfortable night usage
+- Fork, create a branch, make changes, open a PR. See GitHub issues for discussions.
 
-Switch themes using the theme toggle button in the app header.
+## License
 
-## 📋 Features in Detail
-
-### 🤖 AI Chat Assistant
-- Powered by Google Gemini AI
-- Personalized financial advice
-- Expense analysis and recommendations
-- Budget planning assistance
-- Investment guidance for students
-
-### 📊 Expense Management
-- Automatic expense detection from chat
-- Category-based organization
-- Monthly/yearly summaries
-- Export to Excel/CSV formats
-
-### 📈 Market Integration
-- Real-time NIFTY 50 data
-- Stock market trends
-- Investment insights
-
-### 🔔 Smart Notifications
-- Daily financial tips
-- Budget reminders
-- Goal tracking alerts
-- Customizable notification preferences
-
-## 🚀 Deployment
-
-### Backend Deployment (Heroku/Railway/DigitalOcean)
-
-```dockerfile
-# Dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-COPY backend/requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY backend/ .
-EXPOSE 8000
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-### Frontend Deployment (Netlify/Vercel)
-
-```cmd
-cd frontend
-flutter build web
-# Deploy the build/web folder to your hosting service
-```
-
-## 🛠️ Development
-
-### Adding New Features
-
-1. **Backend**: Add new endpoints in `backend/main.py`
-2. **Frontend**: Create new screens in `frontend/lib/screens/`
-3. **Models**: Add data models in `frontend/lib/models/`
-4. **Services**: Add services in `frontend/lib/services/`
-
-### Code Style
-
-- **Python**: Follow PEP 8 guidelines
-- **Dart/Flutter**: Follow official Dart style guide
-- **Linting**: Use `flutter analyze` for Flutter code
-
-## 🔍 API Documentation
-
-Once the backend is running, visit http://localhost:8000/docs for interactive API documentation powered by FastAPI's automatic OpenAPI generation.
-
-### Key Endpoints
-
-- `GET /health` - Health check
-- `POST /chat` - Send message to AI assistant
-- `GET /daily-tip` - Get daily financial tip
-- `POST /daily-tip` - Get category-specific tip
-- `GET /download/csv` - Export data as CSV
-- `POST /import-messages` - Import chat history
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Troubleshooting
-
-### Common Issues
-
-**1. Backend won't start**
-- Check if Python 3.8+ is installed
-- Verify all dependencies are installed: `pip install -r requirements.txt`
-- Ensure GEMINI_API_KEY is set
-
-**2. Flutter build issues**
-- Run `flutter clean && flutter pub get`
-- Check Flutter version: `flutter --version`
-- For Android: Ensure Android SDK is installed
-
-**3. API connection issues**
-- Verify backend is running on http://localhost:8000
-- Check firewall settings
-- For mobile: Use correct IP address (not localhost)
-
-### Getting Help
-
-- 📧 Email: [your-email@domain.com]
-- 💬 Discord: [Your Discord Server]
-- 🐛 Issues: [GitHub Issues](https://github.com/om29-dev/ideathon/issues)
-
-## 🙏 Acknowledgments
-
-- [Google Gemini AI](https://ai.google.dev/) for powerful AI capabilities
-- [Flutter Team](https://flutter.dev/) for the amazing cross-platform framework
-- [FastAPI](https://fastapi.tiangolo.com/) for the modern Python web framework
-- NIFTY 50 data providers for market integration
+This project is licensed under the MIT License — see `LICENSE`.
 
 ---
 
-<div align="center">
-  <p>Made with ❤️ for financial empowerment</p>
-  <p>⭐ Star this repo if you found it helpful!</p>
-</div>
-
-### Automatic Setup (Windows)
-
-1. Get a Gemini API key:
-   - Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
-   - Create a new API key
-
-2. Create `.env` file in the `backend` directory:
-   ```
-   GEMINI_API_KEY=your_actual_api_key_here
-   ```
-
-3. Run the setup script:
-   ```cmd
-   setup.bat
-   ```
-   This will:
-   - Create a Python virtual environment
-   - Install backend dependencies
-   - Install frontend dependencies
-
-4. Start the application:
-   ```cmd
-   start.bat
-   ```
-   This will:
-   - Start the backend server
-   - Start the frontend development server
-
-The frontend will be available at `http://localhost:3000` and the backend at `http://localhost:8003`
-
-### Manual Setup
-
-#### Backend Setup
-
-1. Navigate to the backend directory:
-   ```cmd
-   cd backend
-   ```
-
-2. Create a virtual environment:
-   ```cmd
-   python -m venv venv
-   venv\Scripts\activate
-   ```
-
-3. Install dependencies:
-   ```cmd
-   pip install -r requirements.txt
-   ```
-
-4. Create `.env` file with your Gemini API key:
-   ```
-   GEMINI_API_KEY=your_actual_api_key_here
-   ```
-
-5. Run the backend server:
-   ```cmd
-   python main.py
-   ```
-
-#### Frontend Setup
-
-1. Navigate to the frontend directory:
-   ```cmd
-   cd frontend
-   ```
-
-2. Install dependencies:
-   ```cmd
-   npm install
-   ```
-
-3. Start the development server:
-   ```cmd
-   npm start
-   ```
-
-## API Endpoints
-
-- `GET /` - Root endpoint
-- `GET /health` - Health check and API configuration status
-- `POST /chat` - Send message to Gemini AI and process expenses
-- `GET /download_excel/{filename}` - Download generated Excel file
-
-### Chat Request Format
+If you'd like, I can also trim other docs that still mention React/Vite or add a short Windows Flutter install link. Which would you prefer?
 ```json
 {
   "message": "Your question here",
