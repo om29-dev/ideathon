@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/message.dart';
-import '../models/expense.dart';
+// ...existing code...
 
 enum AppTheme { light, dark, market }
 
@@ -51,6 +53,18 @@ class AppState extends ChangeNotifier {
     _checkBackendHealth();
   }
 
+  String _backendHost() {
+    if (kIsWeb) return 'localhost';
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return '10.0.2.2';
+      default:
+        return 'localhost';
+    }
+  }
+
+  String backendBaseUrl() => 'http://${_backendHost()}:8000';
+
   void _addWelcomeMessage() {
     final welcomeMessage = Message(
       id: 1,
@@ -81,9 +95,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> _checkBackendHealth() async {
     try {
-      final response = await http.get(
-        Uri.parse('http://localhost:8000/health'),
-      );
+      final response = await http.get(Uri.parse('${backendBaseUrl()}/health'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['gemini_configured'] == true) {
@@ -137,7 +149,7 @@ class AppState extends ChangeNotifier {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8000/chat'),
+        Uri.parse('${backendBaseUrl()}/chat'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'message': messageText,

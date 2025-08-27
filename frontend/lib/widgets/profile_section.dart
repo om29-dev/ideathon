@@ -43,34 +43,8 @@ class ProfileSection extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Theme.of(context).primaryColor,
-                  child: const Icon(
-                    Icons.person,
-                    size: 40,
-                    color: Colors.white,
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    width: 16,
-                    height: 16,
-                    decoration: const BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
             Text(
-              'Student User',
+              'Smart Investor',
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),

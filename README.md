@@ -1,33 +1,317 @@
-### Note: This is Under Developing Stage
+# 🤖 AI Finance Assistant
 
+> **A complete AI-powered personal finance management application with Flutter frontend and FastAPI backend**
 
-# AI Finance Buddy
+[![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev/)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
 
-A full-stack application using React frontend and FastAPI backend with Google's Gemini AI integration and automatic expense tracking capabilities.
+## ✨ Features
 
-## Project Structure
+- 🎯 **AI-Powered Chat Assistant** - Get personalized financial advice using Google Gemini AI
+- 📊 **Expense Tracking** - Automatic expense detection and categorization
+- 📈 **NIFTY 50 Integration** - Real-time stock market data and trends
+- 📱 **Cross-Platform** - Works on Web, Android, iOS, Windows, macOS, and Linux
+- 🌙 **Dual Themes** - Beautiful green light theme and purple dark theme
+- 🔔 **Smart Notifications** - Daily financial tips and reminders
+- 📋 **Export Data** - Download your financial data as Excel/CSV files
+- 💰 **Budget Management** - Track income, expenses, and savings goals
+
+## 🏗️ Project Structure
 
 ```
 ideathon/
-├── backend/
-│   ├── main.py              # FastAPI server with Gemini AI & expense tracking
-│   ├── requirements.txt     # Python dependencies
-│   └── test_server.py       # Server tests
-├── frontend/
-│   ├── public/
-│   │   └── index.html
-│   ├── src/
-│   │   ├── App.js          # Main React component
-│   │   ├── App.css         # Styles
-│   │   ├── index.js        # React entry point
-│   │   └── index.css       # Global styles
-│   └── package.json        # Node.js dependencies
-├── setup.bat               # Setup script for Windows
-├── start.bat               # Start script for Windows
-└── README.md
+├── backend/                    # FastAPI Python backend
+│   ├── main.py                # Main FastAPI application
+│   ├── config.py              # Configuration settings
+│   ├── requirements.txt       # Python dependencies
+│   ├── tips/                  # Daily tips service
+│   │   └── service.py         # Gemini AI tip generation
+│   └── data/                  # Data storage
+│       └── daily_tip_cache.json
+│
+├── frontend/                   # Flutter mobile/web app
+│   ├── lib/
+│   │   ├── main.dart          # Main Flutter application
+│   │   ├── models/            # Data models
+│   │   ├── providers/         # State management
+│   │   ├── screens/           # UI screens
+│   │   ├── widgets/           # Reusable UI components
+│   │   ├── services/          # API and notification services
+│   │   └── src/               # Helper utilities
+│   ├── pubspec.yaml           # Flutter dependencies
+│   ├── android/               # Android-specific configuration
+│   ├── web/                   # Web-specific configuration
+│   └── windows/               # Windows-specific configuration
+│
+├── Generated Data/            # Sample data files
+├── setup.bat                 # Windows setup script
+├── start.bat                 # Complete application launcher
+├── start_backend.bat         # Backend-only launcher
+├── start_flutter.bat         # Frontend-only launcher
+└── README.md                 # This file
 ```
 
-## Quick Setup with Scripts
+## 🚀 Quick Start
+
+### Option 1: Automated Setup (Recommended)
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/om29-dev/ideathon.git
+   cd ideathon
+   ```
+
+2. **Run the setup script**
+   ```cmd
+   setup.bat
+   ```
+
+3. **Start the application**
+   ```cmd
+   start.bat
+   ```
+
+The app will be available at:
+- **Web**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs
+
+### Option 2: Manual Setup
+
+#### Prerequisites
+
+- **Python 3.8+** - [Download Python](https://python.org/downloads/)
+- **Flutter 3.8.1+** - [Install Flutter](https://docs.flutter.dev/get-started/install)
+- **Git** - [Download Git](https://git-scm.com/downloads)
+- **Google Gemini API Key** - [Get API Key](https://ai.google.dev/)
+
+#### Backend Setup
+
+1. **Navigate to backend directory**
+   ```cmd
+   cd backend
+   ```
+
+2. **Create virtual environment**
+   ```cmd
+   python -m venv venv
+   venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+   ```cmd
+   pip install -r requirements.txt
+   ```
+
+4. **Set up environment variables**
+   ```cmd
+   # Create .env file or set environment variable
+   set GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+
+5. **Start the backend server**
+   ```cmd
+   python main.py
+   ```
+
+#### Frontend Setup
+
+1. **Navigate to frontend directory**
+   ```cmd
+   cd frontend
+   ```
+
+2. **Get Flutter dependencies**
+   ```cmd
+   flutter pub get
+   ```
+
+3. **Run on different platforms**
+
+   **Web (Recommended for development):**
+   ```cmd
+   flutter run -d web-server --web-port=3000
+   ```
+
+   **Android (requires Android Studio/emulator):**
+   ```cmd
+   flutter run -d android
+   ```
+
+   **Windows (requires Visual Studio):**
+   ```cmd
+   flutter run -d windows
+   ```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env` file in the `backend/` directory:
+
+```env
+GEMINI_API_KEY=your_google_gemini_api_key
+DEBUG=true
+HOST=0.0.0.0
+PORT=8000
+```
+
+### Flutter Configuration
+
+Update `frontend/lib/main.dart` if needed to change backend URL for different platforms.
+
+## 📱 Platform Support
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| 🌐 Web | ✅ Fully Supported | Recommended for development |
+| 🤖 Android | ✅ Fully Supported | Requires Android Studio |
+| 🍎 iOS | ✅ Supported | Requires Xcode (macOS only) |
+| 🪟 Windows | ✅ Supported | Requires Visual Studio |
+| 🐧 Linux | ✅ Supported | Native Linux support |
+| 🍎 macOS | ✅ Supported | Native macOS support |
+
+## 🎨 Themes
+
+The app features two beautiful themes:
+
+- **🌿 Light Theme**: Green-based color scheme for a fresh, modern look
+- **🌙 Dark Theme**: Purple-based color scheme for comfortable night usage
+
+Switch themes using the theme toggle button in the app header.
+
+## 📋 Features in Detail
+
+### 🤖 AI Chat Assistant
+- Powered by Google Gemini AI
+- Personalized financial advice
+- Expense analysis and recommendations
+- Budget planning assistance
+- Investment guidance for students
+
+### 📊 Expense Management
+- Automatic expense detection from chat
+- Category-based organization
+- Monthly/yearly summaries
+- Export to Excel/CSV formats
+
+### 📈 Market Integration
+- Real-time NIFTY 50 data
+- Stock market trends
+- Investment insights
+
+### 🔔 Smart Notifications
+- Daily financial tips
+- Budget reminders
+- Goal tracking alerts
+- Customizable notification preferences
+
+## 🚀 Deployment
+
+### Backend Deployment (Heroku/Railway/DigitalOcean)
+
+```dockerfile
+# Dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+COPY backend/requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY backend/ .
+EXPOSE 8000
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+### Frontend Deployment (Netlify/Vercel)
+
+```cmd
+cd frontend
+flutter build web
+# Deploy the build/web folder to your hosting service
+```
+
+## 🛠️ Development
+
+### Adding New Features
+
+1. **Backend**: Add new endpoints in `backend/main.py`
+2. **Frontend**: Create new screens in `frontend/lib/screens/`
+3. **Models**: Add data models in `frontend/lib/models/`
+4. **Services**: Add services in `frontend/lib/services/`
+
+### Code Style
+
+- **Python**: Follow PEP 8 guidelines
+- **Dart/Flutter**: Follow official Dart style guide
+- **Linting**: Use `flutter analyze` for Flutter code
+
+## 🔍 API Documentation
+
+Once the backend is running, visit http://localhost:8000/docs for interactive API documentation powered by FastAPI's automatic OpenAPI generation.
+
+### Key Endpoints
+
+- `GET /health` - Health check
+- `POST /chat` - Send message to AI assistant
+- `GET /daily-tip` - Get daily financial tip
+- `POST /daily-tip` - Get category-specific tip
+- `GET /download/csv` - Export data as CSV
+- `POST /import-messages` - Import chat history
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**1. Backend won't start**
+- Check if Python 3.8+ is installed
+- Verify all dependencies are installed: `pip install -r requirements.txt`
+- Ensure GEMINI_API_KEY is set
+
+**2. Flutter build issues**
+- Run `flutter clean && flutter pub get`
+- Check Flutter version: `flutter --version`
+- For Android: Ensure Android SDK is installed
+
+**3. API connection issues**
+- Verify backend is running on http://localhost:8000
+- Check firewall settings
+- For mobile: Use correct IP address (not localhost)
+
+### Getting Help
+
+- 📧 Email: [your-email@domain.com]
+- 💬 Discord: [Your Discord Server]
+- 🐛 Issues: [GitHub Issues](https://github.com/om29-dev/ideathon/issues)
+
+## 🙏 Acknowledgments
+
+- [Google Gemini AI](https://ai.google.dev/) for powerful AI capabilities
+- [Flutter Team](https://flutter.dev/) for the amazing cross-platform framework
+- [FastAPI](https://fastapi.tiangolo.com/) for the modern Python web framework
+- NIFTY 50 data providers for market integration
+
+---
+
+<div align="center">
+  <p>Made with ❤️ for financial empowerment</p>
+  <p>⭐ Star this repo if you found it helpful!</p>
+</div>
 
 ### Automatic Setup (Windows)
 
@@ -148,6 +432,10 @@ The frontend will be available at `http://localhost:3000` and the backend at `ht
 - 🔄 Connection status indicators
 - 📜 Message history
 - 🛡️ Error handling and validation
+- 🔔 **Daily Tip Notifications** - Receive personalized finance tips every day at 9 AM
+- 💡 **Smart Tip Generation** - AI-powered tips based on different categories (saving, budgeting, investing)
+- 🧪 **Test Notifications** - Try out notifications instantly with the test button
+- 📲 **Background Scheduling** - Uses Android WorkManager for reliable daily notifications
 
 ## Technologies Used
 
@@ -287,6 +575,38 @@ Last week I went to the restaurant and the amount was ₹450, then I purchased a
 2. **Wait for the AI to process** your expense information
 3. **Click "Download Excel Report"** when it appears
 4. **Open the Excel file** to view your formatted expense report
+
+## Daily Tip Notifications
+
+The app features an intelligent daily tip notification system to help you build better financial habits:
+
+### How to Enable
+1. Open the **Profile** menu (person icon in the top right)
+2. Toggle **"Daily Tip Notifications"** to ON
+3. Grant notification permission when prompted
+4. Test immediately with the **"Test Notification"** button
+
+### Features
+- 📅 **Daily Schedule**: Automatically delivers tips at 9:00 AM every day
+- 🤖 **AI-Powered Tips**: Uses Google Gemini to generate personalized finance advice
+- 🎯 **Varied Categories**: Different tip types each day (saving, budgeting, investing, expense tracking)
+- 💾 **Smart Caching**: Tips are cached daily to ensure consistency and reduce API calls
+- 🔄 **Fallback System**: Works even when offline with pre-defined helpful tips
+- ⚙️ **Background Processing**: Uses Android WorkManager for reliable delivery
+- 🧪 **Instant Testing**: Test notifications immediately to see how they work
+
+### Example Tips You Might Receive
+- "Save ₹50 daily to have ₹18,250 in a year! Small habits matter."
+- "Use the 50/30/20 rule: 50% needs, 30% wants, 20% savings."
+- "Track every expense for a week to understand your spending patterns."
+- "Start a SIP with just ₹500 monthly to begin your investment journey."
+
+### Technical Details
+- **Backend API**: `/daily-tip` endpoint provides cached tips
+- **Flutter Service**: `NotificationService` handles scheduling and permissions
+- **Android Permissions**: Uses `POST_NOTIFICATIONS` and `WAKE_LOCK`
+- **Scheduling**: Workmanager handles background task execution
+- **Fallback**: 10+ pre-written tips available when AI is unavailable
 
 ## Troubleshooting
 

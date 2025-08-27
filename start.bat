@@ -29,7 +29,7 @@ echo Waiting for backend to start...
 timeout /t 5 /nobreak > nul
 
 echo [3/3] Starting Flutter Frontend...
-start "Flutter Frontend" cmd /k "cd frontend && flutter run -d chrome"
+start "Flutter Frontend" cmd /k "cd frontend && flutter run"
 
 echo.
 echo ✅ Flutter Application is starting!

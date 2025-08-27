@@ -1,4 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <!-- Needed on Android 13+ to request notification permission at runtime -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Internet permission for background tasks to fetch daily tips -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Background work permissions -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
         android:label="finance_assistant_flutter"
         android:name="${applicationName}"

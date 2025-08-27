@@ -1,7 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:html' as html;
+import 'dart:io' show Platform, File;
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'src/download_helper.dart';
+import 'services/notification_service.dart';
+import 'widgets/permission_dialog.dart';
+
+String _backendHost() {
+  if (kIsWeb) return 'localhost';
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+      // Android emulator (Android Studio AVD) uses 10.0.2.2 to reach host machine
+      return '10.0.2.2';
+    default:
+      return 'localhost';
+  }
+}
+
+String backendBaseUrl() => 'http://${_backendHost()}:8000';
 
 void main() {
   runApp(MyApp());
@@ -42,20 +62,20 @@ class _MyAppState extends State<MyApp> {
 
   static final _lightTheme = ThemeData(
     brightness: Brightness.light,
-    primarySwatch: Colors.blue,
-    primaryColor: const Color(0xFF4361ee),
-    scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+    primarySwatch: Colors.green,
+    primaryColor: const Color(0xFF2E7D32), // Dark Green
+    scaffoldBackgroundColor: const Color(0xFFF1F8E9), // Very Light Green
     cardColor: Colors.white,
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF4361ee),
+      backgroundColor: Color(0xFF2E7D32), // Dark Green
       foregroundColor: Colors.white,
       elevation: 0,
     ),
     colorScheme: const ColorScheme.light(
-      primary: Color(0xFF4361ee),
-      secondary: Color(0xFF7209b7),
+      primary: Color(0xFF2E7D32), // Dark Green
+      secondary: Color(0xFF388E3C), // Medium Green
       surface: Colors.white,
-      background: Color(0xFFF8F9FA),
+      background: Color(0xFFF1F8E9), // Very Light Green
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onSurface: Colors.black87,
@@ -65,18 +85,18 @@ class _MyAppState extends State<MyApp> {
 
   static final _darkTheme = ThemeData(
     brightness: Brightness.dark,
-    primarySwatch: Colors.blue,
-    primaryColor: const Color(0xFF4361ee),
+    primarySwatch: Colors.purple,
+    primaryColor: const Color(0xFF7B1FA2), // Dark Purple
     scaffoldBackgroundColor: const Color(0xFF1A1A1A),
     cardColor: const Color(0xFF2D2D2D),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF2D2D2D),
+      backgroundColor: Color(0xFF4A148C), // Deep Purple
       foregroundColor: Colors.white,
       elevation: 0,
     ),
     colorScheme: const ColorScheme.dark(
-      primary: Color(0xFF6C63FF),
-      secondary: Color(0xFF9C27B0),
+      primary: Color(0xFF7B1FA2), // Dark Purple
+      secondary: Color(0xFF9C27B0), // Medium Purple
       surface: Color(0xFF2D2D2D),
       background: Color(0xFF1A1A1A),
       onPrimary: Colors.white,
@@ -101,12 +121,186 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
   bool _isLoading = false;
   int _userTokens = 150;
   String _connectionStatus = 'checking';
+  List<Map<String, dynamic>> _importedMessages = [];
+  bool _isImportingMessages = false;
 
   @override
   void initState() {
     super.initState();
     _addWelcomeMessage();
     _checkBackendHealth();
+    _initializeNotifications();
+  }
+
+  /// Initialize notification service and load preferences
+  Future<void> _initializeNotifications() async {
+    try {
+      // Initialize notification service
+      final initialized = await NotificationService.initialize();
+
+      if (initialized) {
+        debugPrint('Notification service initialized successfully');
+
+        // Load user preferences
+        final enabled = await NotificationService.isDailyNotificationsEnabled();
+        setState(() {
+          _dailyTipEnabled = enabled;
+        });
+
+        // Request permissions if notifications are enabled
+        if (enabled) {
+          await NotificationService.requestPermissions();
+          debugPrint(
+            'Notification permissions requested for enabled notifications',
+          );
+        }
+      } else {
+        debugPrint('Failed to initialize notification service');
+      }
+    } catch (e) {
+      debugPrint('Error initializing notifications: $e');
+    }
+  }
+
+  bool _dailyTipEnabled = false;
+
+  /// Toggle daily tip notifications on/off
+  Future<void> _setDailyTipEnabled(bool enabled) async {
+    if (enabled) {
+      // Show permission dialog first
+      final bool? userConsent = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => NotificationPermissionDialog(
+          onAllow: () => Navigator.of(context).pop(true),
+          onDeny: () => Navigator.of(context).pop(false),
+        ),
+      );
+
+      if (userConsent != true) {
+        // User denied permission
+        setState(() {
+          _dailyTipEnabled = false;
+        });
+        return;
+      }
+
+      // User allowed, now request system permissions
+      try {
+        debugPrint('Requesting notification permissions...');
+        final granted = await NotificationService.requestPermissions();
+        debugPrint('Permission granted: $granted');
+
+        if (granted) {
+          setState(() {
+            _dailyTipEnabled = true;
+          });
+
+          // Enable daily notifications
+          await NotificationService.enableDailyNotifications();
+          debugPrint('Daily notifications enabled');
+
+          // Show immediate test notification
+          await NotificationService.showTestNotification();
+          debugPrint('Test notification sent');
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Daily tips enabled! Test notification sent.'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } else {
+          // Permission denied at system level
+          setState(() {
+            _dailyTipEnabled = false;
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Please enable notifications in your device settings to receive daily tips.',
+                ),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('Error requesting permissions: $e');
+        setState(() {
+          _dailyTipEnabled = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } else {
+      // Disable notifications
+      setState(() {
+        _dailyTipEnabled = false;
+      });
+
+      await NotificationService.disableDailyNotifications();
+      debugPrint('Daily notifications disabled');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Daily tip notifications disabled.')),
+        );
+      }
+    }
+  }
+
+  static const MethodChannel _smsChannel = MethodChannel('app/sms');
+
+  Future<void> _importMessages() async {
+    if (!Platform.isAndroid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Import messages is only supported on Android.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isImportingMessages = true;
+    });
+
+    try {
+      final result = await _smsChannel.invokeMethod('getSms');
+      // Expecting a List<Map<String, dynamic>> serialized from Android
+      final List<dynamic> list = result as List<dynamic>;
+      _importedMessages = list
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+
+      // save temporarily to cache
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/imported_messages.json');
+      await file.writeAsString(json.encode(_importedMessages));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Imported ${_importedMessages.length} messages'),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to import messages: $e')));
+    } finally {
+      setState(() {
+        _isImportingMessages = false;
+      });
+    }
   }
 
   void _addWelcomeMessage() {
@@ -124,9 +318,7 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
 
   Future<void> _checkBackendHealth() async {
     try {
-      final response = await http.get(
-        Uri.parse('http://localhost:8000/health'),
-      );
+      final response = await http.get(Uri.parse('${backendBaseUrl()}/health'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
@@ -162,7 +354,7 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8000/chat'),
+        Uri.parse('${backendBaseUrl()}/chat'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'message': message,
@@ -281,42 +473,31 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
 
   @override
   Widget build(BuildContext context) {
+    final isNarrow = MediaQuery.of(context).size.width < 800;
+
     return Scaffold(
+      drawer: isNarrow
+          ? Drawer(child: SafeArea(child: _buildUserProfile()))
+          : null,
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           children: [
-            Text('🤖', style: TextStyle(fontSize: 24)),
-            SizedBox(width: 8),
-            Text(
-              'AI Finance Assistant',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            const Text('🤖', style: TextStyle(fontSize: 22)),
+            const SizedBox(width: 8),
+            // Make title flexible so it truncates on narrow screens instead of overflowing
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'AI Finance Assistant',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+              ),
             ),
           ],
         ),
         actions: [
-          _buildStatusBadge(),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('🪙', style: TextStyle(fontSize: 16)),
-                const SizedBox(width: 4),
-                Text(
-                  '$_userTokens',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
           IconButton(
             icon: Icon(
               Theme.of(context).brightness == Brightness.dark
@@ -357,41 +538,42 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
 
           return Row(
             children: [
-              // Left Sidebar
-              Container(
-                width: sidebarWidth,
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).shadowColor.withOpacity(0.1),
-                      blurRadius: 4,
-                      offset: const Offset(2, 0),
-                    ),
-                  ],
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      // User Profile Section
-                      _buildUserProfile(),
-
-                      const SizedBox(height: 16),
-
-                      // NIFTY 50 Chart
-                      _buildNiftyChart(),
-
-                      const SizedBox(height: 16),
-
-                      // Daily Tip
-                      _buildDailyTip(),
-
-                      const SizedBox(height: 20),
+              // Left Sidebar (visible on wide screens)
+              if (!isNarrow)
+                Container(
+                  width: sidebarWidth,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).shadowColor.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(2, 0),
+                      ),
                     ],
                   ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // User Profile Section
+                        _buildUserProfile(),
+
+                        const SizedBox(height: 16),
+
+                        // NIFTY 50 Chart
+                        _buildNiftyChart(),
+
+                        const SizedBox(height: 16),
+
+                        // Daily Tip
+                        _buildDailyTip(),
+
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
 
               // Main Chat Area
               Expanded(
@@ -435,6 +617,33 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
+          // Connection status + tokens at top to avoid AppBar overflow
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildStatusBadge(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.06)
+                      : Colors.white.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Text('🪙', style: TextStyle(fontSize: 14)),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$_userTokens',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           // Avatar
           Container(
             width: 80,
@@ -473,6 +682,60 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
           ),
 
           const SizedBox(height: 16),
+
+          // Messages import
+          ListTile(
+            leading: const Icon(Icons.message),
+            title: const Text('Import Messages'),
+            subtitle: Text(
+              _importedMessages.isEmpty
+                  ? 'No messages imported'
+                  : '${_importedMessages.length} messages',
+            ),
+            onTap: _importMessages,
+            trailing: _isImportingMessages
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
+          ),
+
+          // Daily Tip Notifications switch
+          SwitchListTile(
+            title: const Text('Daily Tip Notifications'),
+            subtitle: const Text('Receive daily finance tips as notifications'),
+            secondary: const Icon(Icons.notifications),
+            value: _dailyTipEnabled,
+            onChanged: (v) => _setDailyTipEnabled(v),
+          ),
+
+          // Test notification button (only show if notifications are enabled)
+          if (_dailyTipEnabled)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  await NotificationService.showTestNotification();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Test notification sent!'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.notification_add),
+                label: const Text('Test Notification'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).primaryColor,
+                ),
+              ),
+            ),
+
+          const SizedBox(height: 8),
 
           // Tokens
           Container(
@@ -1010,22 +1273,15 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
   Future<void> _downloadFile(String format) async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8000/download/$format'),
+        Uri.parse('${backendBaseUrl()}/download/$format'),
       );
 
       if (response.statusCode == 200) {
         // For Flutter web, we need to use a different approach to download files
         final bytes = response.bodyBytes;
-        final blob = html.Blob([bytes]);
-        final url = html.Url.createObjectUrlFromBlob(blob);
-
         // Use .xlsx extension for Excel downloads
         final filename = format == 'excel' ? 'expenses.xlsx' : 'expenses.csv';
-
-        html.AnchorElement(href: url)
-          ..setAttribute('download', filename)
-          ..click();
-        html.Url.revokeObjectUrl(url);
+        await downloadBytes(bytes, filename);
 
         setState(() {
           _userTokens += format == 'excel' ? 10 : 5;

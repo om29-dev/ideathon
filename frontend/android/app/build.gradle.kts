@@ -8,11 +8,14 @@ plugins {
 android {
     namespace = "com.example.finance_assistant_flutter"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Ensure we use the highest NDK required by plugins (backward compatible)
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    // Enable core library desugaring for Java <-> Android API compatibility
+    isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -41,4 +44,9 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// Add desugaring dependency required by some plugins (e.g., flutter_local_notifications)
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

@@ -26,12 +26,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure Gemini API
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
-    print("Warning: GEMINI_API_KEY environment variable not set")
-else:
-    genai.configure(api_key=GEMINI_API_KEY)
+try:
+    # Preferred: package import when running as a package (python -m backend.main)
+    from backend.config import GEMINI_API_KEY
+    from backend.tips.service import generate_daily_tip
+except Exception:
+    # Fallback: adjust sys.path when running main.py directly from the backend/ folder
+    import sys, os
+    repo_root = os.path.dirname(os.path.dirname(__file__))
+    if repo_root not in sys.path:
+        sys.path.insert(0, repo_root)
+    from backend.config import GEMINI_API_KEY
+    from backend.tips.service import generate_daily_tip
 
 class ChatRequest(BaseModel):
     message: str
@@ -42,6 +48,10 @@ class ChatResponse(BaseModel):
     response: str
     status: str
     has_expenses: Optional[bool] = False
+
+class DailyTipRequest(BaseModel):
+    category: Optional[str] = "general"
+    notification_type: Optional[str] = "standard"
     excel_data: Optional[str] = None
 
 class ExpenseItem(BaseModel):
@@ -501,6 +511,59 @@ async def view_summary(request: dict):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "gemini_configured": bool(GEMINI_API_KEY)}
+
+
+@app.get("/daily-tip")
+async def daily_tip():
+    """Return a short daily tip (cached per day)."""
+    try:
+        tip_data = generate_daily_tip()
+        return {
+            "status": "success", 
+            "tip": tip_data,
+            "timestamp": datetime.now().isoformat(),
+            "cached": tip_data.get("date") == datetime.utcnow().strftime("%Y-%m-%d")
+        }
+    except Exception as e:
+        # Return fallback tip on error
+        fallback_tip = {
+            "date": datetime.utcnow().strftime("%Y-%m-%d"),
+            "tip": "Save ₹50 daily to have ₹18,250 in a year! Small habits lead to big results."
+        }
+        return {
+            "status": "error", 
+            "message": str(e),
+            "tip": fallback_tip,
+            "timestamp": datetime.now().isoformat(),
+            "cached": False
+        }
+
+@app.post("/daily-tip")
+async def daily_tip_varied(request: DailyTipRequest):
+    """Return a varied daily tip based on category."""
+    try:
+        tip_data = generate_daily_tip(category=request.category)
+        return {
+            "status": "success", 
+            "tip": tip_data,
+            "category": request.category,
+            "timestamp": datetime.now().isoformat(),
+            "cached": tip_data.get("date") == datetime.utcnow().strftime("%Y-%m-%d")
+        }
+    except Exception as e:
+        # Return fallback tip on error
+        fallback_tip = {
+            "date": datetime.utcnow().strftime("%Y-%m-%d"),
+            "tip": "Save ₹50 daily to have ₹18,250 in a year! Small habits lead to big results."
+        }
+        return {
+            "status": "error", 
+            "tip": fallback_tip,
+            "category": request.category,
+            "message": str(e),
+            "timestamp": datetime.now().isoformat(),
+            "cached": False
+        }
 
 @app.get("/test-excel")
 async def test_excel():
