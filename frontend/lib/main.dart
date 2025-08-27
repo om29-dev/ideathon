@@ -6,9 +6,18 @@ import 'dart:convert';
 import 'dart:io' show Platform, File;
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'src/download_helper.dart';
 import 'services/notification_service.dart';
+import 'services/auth_service.dart';
+import 'services/database_service.dart';
 import 'widgets/permission_dialog.dart';
+import 'screens/auth_screen.dart';
+import 'screens/budget_screen.dart';
+import 'screens/financial_goals_screen.dart';
+import 'screens/analytics_screen.dart';
+import 'providers/app_state.dart';
 
 String _backendHost() {
   if (kIsWeb) return 'localhost';
@@ -23,18 +32,25 @@ String _backendHost() {
 
 String backendBaseUrl() => 'http://${_backendHost()}:8000';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize database
+  await DatabaseService().database;
+
+  // Initialize SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(MyApp(prefs: prefs));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final SharedPreferences prefs;
+
+  const MyApp({super.key, required this.prefs});
 
   @override
   State<MyApp> createState() => _MyAppState();
-
-  static _MyAppState? of(BuildContext context) =>
-      context.findAncestorStateOfType<_MyAppState>();
 }
 
 class _MyAppState extends State<MyApp> {
@@ -50,14 +66,43 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'AI Finance Assistant',
-      debugShowCheckedModeBanner: false,
-      themeMode: _themeMode,
-      theme: _lightTheme,
-      darkTheme: _darkTheme,
-      home: const FinanceAssistantHome(),
+    return ChangeNotifierProvider(
+      create: (context) => AppState(widget.prefs),
+      child: MaterialApp(
+        title: 'AI Finance Assistant',
+        debugShowCheckedModeBanner: false,
+        theme: _lightTheme,
+        darkTheme: _darkTheme,
+        themeMode: _themeMode,
+        home: FutureBuilder<bool>(
+          future: _checkAuthenticationStatus(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (snapshot.data == true) {
+              return AuthenticatedApp(
+                onToggleTheme: toggleTheme,
+                currentTheme: _themeMode,
+              );
+            } else {
+              return const AuthScreen();
+            }
+          },
+        ),
+      ),
     );
+  }
+
+  Future<bool> _checkAuthenticationStatus() async {
+    try {
+      return await AuthService.hasAuthenticationSetup();
+    } catch (e) {
+      return false;
+    }
   }
 
   static final _lightTheme = ThemeData(
@@ -107,8 +152,83 @@ class _MyAppState extends State<MyApp> {
   );
 }
 
+class AuthenticatedApp extends StatefulWidget {
+  final VoidCallback onToggleTheme;
+  final ThemeMode currentTheme;
+
+  const AuthenticatedApp({
+    super.key,
+    required this.onToggleTheme,
+    required this.currentTheme,
+  });
+
+  @override
+  State<AuthenticatedApp> createState() => _AuthenticatedAppState();
+}
+
+class _AuthenticatedAppState extends State<AuthenticatedApp> {
+  int _currentIndex = 0;
+
+  List<Widget> get _screens => [
+    FinanceAssistantHome(
+      onToggleTheme: widget.onToggleTheme,
+      currentTheme: widget.currentTheme,
+    ),
+    const BudgetScreen(),
+    const FinancialGoalsScreen(),
+    const AnalyticsScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline),
+            activeIcon: Icon(Icons.chat_bubble),
+            label: 'AI Chat',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            activeIcon: Icon(Icons.account_balance_wallet),
+            label: 'Budget',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.flag_outlined),
+            activeIcon: Icon(Icons.flag),
+            label: 'Goals',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.analytics_outlined),
+            activeIcon: Icon(Icons.analytics),
+            label: 'Analytics',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class FinanceAssistantHome extends StatefulWidget {
-  const FinanceAssistantHome({super.key});
+  final VoidCallback? onToggleTheme;
+  final ThemeMode? currentTheme;
+
+  const FinanceAssistantHome({
+    super.key,
+    this.onToggleTheme,
+    this.currentTheme,
+  });
 
   @override
   State<FinanceAssistantHome> createState() => _FinanceAssistantHomeState();
@@ -506,7 +626,7 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
               color: Colors.white,
             ),
             onPressed: () {
-              MyApp.of(context)?.toggleTheme();
+              widget.onToggleTheme?.call();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
