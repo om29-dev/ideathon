@@ -22,14 +22,14 @@ if errorlevel 1 (
 )
 
 echo [2/3] Starting Python FastAPI Backend...
-start "Backend Server" cmd /k "cd /d %cd% && venv\Scripts\activate.bat && python main.py"
+start "Backend Server" cmd /k "cd /d %~dp0backend && venv\Scripts\activate.bat && python main.py"
 
 cd ..
 echo Waiting for backend to start...
 timeout /t 5 /nobreak > nul
 
 echo [3/3] Starting Flutter Frontend...
-start "Flutter Frontend" cmd /k "cd frontend && flutter run"
+start "Flutter Frontend" cmd /k "cd /d %~dp0frontend && flutter run"
 
 echo.
 echo ✅ Flutter Application is starting!
