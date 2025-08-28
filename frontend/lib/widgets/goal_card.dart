@@ -219,6 +219,7 @@ class GoalCard extends StatelessWidget {
                   children: [
                     if (!isCompleted && onUpdateProgress != null) ...[
                       Expanded(
+                        flex: 2,
                         child: ElevatedButton.icon(
                           onPressed: onUpdateProgress,
                           icon: const Icon(Icons.add, size: 18),
@@ -236,16 +237,16 @@ class GoalCard extends StatelessWidget {
                     ],
                     if (onEdit != null) ...[
                       Expanded(
-                        child: OutlinedButton.icon(
+                        flex: 1,
+                        child: OutlinedButton(
                           onPressed: onEdit,
-                          icon: const Icon(Icons.edit, size: 18),
-                          label: const Text('Edit'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: theme.primaryColor,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
+                          child: const Icon(Icons.edit, size: 18),
                         ),
                       ),
                       const SizedBox(width: 8),

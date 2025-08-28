@@ -1,14 +1,16 @@
+import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/expense.dart';
 import '../models/budget.dart';
 import '../models/financial_goal.dart';
 import '../models/investment.dart';
+import '../models/message.dart';
 
 class DatabaseService {
   static Database? _database;
   static const String _databaseName = 'ai_finance_buddy.db';
-  static const int _databaseVersion = 1;
+  static const int _databaseVersion = 2;
 
   // Singleton pattern
   static final DatabaseService _instance = DatabaseService._internal();
@@ -114,6 +116,19 @@ class DatabaseService {
       )
     ''');
 
+    // Create chat messages table
+    await db.execute('''
+      CREATE TABLE chat_messages (
+        id INTEGER PRIMARY KEY,
+        text TEXT NOT NULL,
+        sender INTEGER NOT NULL,
+        timestamp TEXT NOT NULL,
+        has_expenses INTEGER DEFAULT 0,
+        excel_data TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+
     // Insert default categories
     await _insertDefaultCategories(db);
   }
@@ -121,7 +136,18 @@ class DatabaseService {
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     // Handle database upgrades
     if (oldVersion < 2) {
-      // Future upgrade logic
+      // Add chat messages table in version 2
+      await db.execute('''
+        CREATE TABLE chat_messages (
+          id INTEGER PRIMARY KEY,
+          text TEXT NOT NULL,
+          sender INTEGER NOT NULL,
+          timestamp TEXT NOT NULL,
+          has_expenses INTEGER DEFAULT 0,
+          excel_data TEXT,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+      ''');
     }
   }
 
@@ -206,20 +232,6 @@ class DatabaseService {
 
   Future<List<Expense>> getExpenses({String? category, int? limit}) async {
     final db = await database;
-    String query = 'SELECT * FROM expenses';
-    List<String> args = [];
-
-    if (category != null) {
-      query += ' WHERE category = ?';
-      args.add(category);
-    }
-
-    query += ' ORDER BY date DESC';
-
-    if (limit != null) {
-      query += ' LIMIT ?';
-      args.add(limit.toString());
-    }
 
     final List<Map<String, dynamic>> maps = await db.query(
       'expenses',
@@ -328,6 +340,21 @@ class DatabaseService {
     );
   }
 
+  Future<void> updateBudget(Budget budget) async {
+    final db = await database;
+    await db.update(
+      'budgets',
+      budget.toMap(),
+      where: 'id = ?',
+      whereArgs: [budget.id],
+    );
+  }
+
+  Future<void> deleteBudget(int budgetId) async {
+    final db = await database;
+    await db.delete('budgets', where: 'id = ?', whereArgs: [budgetId]);
+  }
+
   // Financial Goal operations
   Future<int> insertFinancialGoal(FinancialGoal goal) async {
     final db = await database;
@@ -433,6 +460,68 @@ class DatabaseService {
       'period':
           '${startDate.day}/${startDate.month}/${startDate.year} - ${endDate.day}/${endDate.month}/${endDate.year}',
     };
+  }
+
+  // Chat Messages operations
+  Future<int> insertChatMessage(Message message) async {
+    try {
+      print('DatabaseService: Inserting chat message...');
+      final db = await database;
+      final result = await db.insert('chat_messages', {
+        'id': message.id,
+        'text': message.text,
+        'sender': message.sender.index,
+        'timestamp': message.timestamp.toIso8601String(),
+        'has_expenses': message.hasExpenses ? 1 : 0,
+        'excel_data': message.excelData != null
+            ? json.encode(message.excelData)
+            : null,
+      });
+      print('DatabaseService: Chat message inserted with rowid: $result');
+      return result;
+    } catch (e) {
+      print('DatabaseService: Error inserting chat message: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Message>> getChatMessages() async {
+    try {
+      print('DatabaseService: Loading chat messages...');
+      final db = await database;
+      final List<Map<String, dynamic>> maps = await db.query(
+        'chat_messages',
+        orderBy: 'timestamp ASC',
+      );
+
+      print('DatabaseService: Found ${maps.length} chat messages in database');
+      return List.generate(maps.length, (i) {
+        final map = maps[i];
+        return Message(
+          id: map['id'],
+          text: map['text'],
+          sender: MessageSender.values[map['sender']],
+          timestamp: DateTime.parse(map['timestamp']),
+          hasExpenses: map['has_expenses'] == 1,
+          excelData: map['excel_data'] != null
+              ? json.decode(map['excel_data'])
+              : null,
+        );
+      });
+    } catch (e) {
+      print('DatabaseService: Error loading chat messages: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteChatMessage(int messageId) async {
+    final db = await database;
+    await db.delete('chat_messages', where: 'id = ?', whereArgs: [messageId]);
+  }
+
+  Future<void> clearAllChatMessages() async {
+    final db = await database;
+    await db.delete('chat_messages');
   }
 
   // Utility methods

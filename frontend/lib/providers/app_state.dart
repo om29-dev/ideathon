@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart'
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/message.dart';
+import '../services/database_service.dart';
 // ...existing code...
 
 enum AppTheme { light, dark, market }
@@ -13,6 +14,7 @@ enum ConnectionStatus { checking, connected, noApiKey, disconnected }
 
 class AppState extends ChangeNotifier {
   final SharedPreferences _prefs;
+  final DatabaseService _databaseService = DatabaseService();
 
   // State variables
   List<Message> _messages = [];
@@ -35,10 +37,17 @@ class AppState extends ChangeNotifier {
     _initializeApp();
   }
 
-  void _loadUserData() {
+  void _loadUserData() async {
     _userTokens = _prefs.getInt('user_tokens') ?? 150;
     final themeIndex = _prefs.getInt('current_theme') ?? 0;
     _currentTheme = AppTheme.values[themeIndex];
+    await _loadChatMessages();
+
+    // Only add welcome message if no messages exist after loading from database
+    if (_messages.isEmpty) {
+      _addWelcomeMessage();
+    }
+
     notifyListeners();
   }
 
@@ -47,8 +56,47 @@ class AppState extends ChangeNotifier {
     _prefs.setInt('current_theme', _currentTheme.index);
   }
 
+  Future<void> _loadChatMessages() async {
+    try {
+      print('Loading chat messages from database...');
+      final messages = await _databaseService.getChatMessages();
+      _messages = messages;
+      print('Loaded ${messages.length} chat messages');
+    } catch (e) {
+      print('Error loading chat messages: $e');
+      // If loading fails, start with empty messages
+      _messages = [];
+    }
+  }
+
+  Future<void> _saveChatMessage(Message message) async {
+    try {
+      print(
+        'Saving chat message to database: ${message.text.substring(0, 30)}...',
+      );
+      await _databaseService.insertChatMessage(message);
+      print('Chat message saved successfully');
+    } catch (e) {
+      print('Error saving chat message: $e');
+      // If saving fails, continue without saving
+    }
+  }
+
+  Future<void> clearChatHistory() async {
+    try {
+      await _databaseService.clearAllChatMessages();
+      _messages.clear();
+      _addWelcomeMessage();
+      notifyListeners();
+    } catch (e) {
+      // If clearing fails, just clear local messages
+      _messages.clear();
+      _addWelcomeMessage();
+      notifyListeners();
+    }
+  }
+
   void _initializeApp() {
-    _addWelcomeMessage();
     _generateNiftyData();
     _checkBackendHealth();
   }
@@ -65,9 +113,9 @@ class AppState extends ChangeNotifier {
 
   String backendBaseUrl() => 'http://${_backendHost()}:8000';
 
-  void _addWelcomeMessage() {
+  void _addWelcomeMessage() async {
     final welcomeMessage = Message(
-      id: 1,
+      id: DateTime.now().millisecondsSinceEpoch, // Use timestamp for unique ID
       text:
           "Hello! I'm your AI Finance Assistant powered by Google's Gemini. I'm here to help you manage your finances as a student! 💰\n\n💡 **Features**:\n• Track your daily expenses\n• Get investment advice for students\n• Learn about SIP and stock market basics\n• Set financial goals\n\nTry saying: 'I spent ₹150 on books and ₹80 on snacks today'",
       sender: MessageSender.bot,
@@ -75,6 +123,7 @@ class AppState extends ChangeNotifier {
       hasExpenses: false,
     );
     _messages.add(welcomeMessage);
+    await _saveChatMessage(welcomeMessage);
     notifyListeners();
   }
 
@@ -147,6 +196,9 @@ class AppState extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
+    // Save user message to database
+    await _saveChatMessage(userMessage);
+
     try {
       final response = await http.post(
         Uri.parse('${backendBaseUrl()}/chat'),
@@ -173,6 +225,8 @@ class AppState extends ChangeNotifier {
         _messages.add(botMessage);
         _userTokens += 5;
         _saveUserData();
+        // Save bot message to database
+        await _saveChatMessage(botMessage);
       } else {
         final errorMessage = Message(
           id: DateTime.now().millisecondsSinceEpoch + 1,
@@ -181,6 +235,8 @@ class AppState extends ChangeNotifier {
           timestamp: DateTime.now(),
         );
         _messages.add(errorMessage);
+        // Save error message to database
+        await _saveChatMessage(errorMessage);
       }
     } catch (e) {
       final errorMessage = Message(
@@ -190,8 +246,11 @@ class AppState extends ChangeNotifier {
         timestamp: DateTime.now(),
       );
       _messages.add(errorMessage);
+      // Save error message to database
+      await _saveChatMessage(errorMessage);
     } finally {
       _isLoading = false;
+      _saveUserData(); // Save user data (tokens, theme)
       notifyListeners();
     }
   }

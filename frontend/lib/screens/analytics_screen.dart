@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../services/database_service.dart';
 import '../models/expense.dart';
+import '../widgets/custom_app_bar.dart';
 
 class AnalyticsScreen extends StatefulWidget {
-  const AnalyticsScreen({super.key});
+  final VoidCallback? onToggleTheme;
+
+  const AnalyticsScreen({super.key, this.onToggleTheme});
 
   @override
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
@@ -85,12 +88,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('📊 Analytics'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
+      appBar: CustomAppBar(
+        title: '📊 Analytics',
+        onToggleTheme: widget.onToggleTheme,
+        additionalActions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadAnalytics,

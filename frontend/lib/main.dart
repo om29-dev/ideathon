@@ -13,6 +13,7 @@ import 'services/notification_service.dart';
 import 'services/auth_service.dart';
 import 'services/database_service.dart';
 import 'widgets/permission_dialog.dart';
+import 'widgets/app_drawer.dart';
 import 'screens/auth_screen.dart';
 import 'screens/budget_screen.dart';
 import 'screens/financial_goals_screen.dart';
@@ -107,47 +108,107 @@ class _MyAppState extends State<MyApp> {
 
   static final _lightTheme = ThemeData(
     brightness: Brightness.light,
-    primarySwatch: Colors.green,
-    primaryColor: const Color(0xFF2E7D32), // Dark Green
-    scaffoldBackgroundColor: const Color(0xFFF1F8E9), // Very Light Green
+    primarySwatch: Colors.blue,
+    primaryColor: const Color(0xFF4361ee), // Blue
+    scaffoldBackgroundColor: const Color(0xFFe3f2fd), // Very Light Blue
     cardColor: Colors.white,
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF2E7D32), // Dark Green
+      backgroundColor: Color(0xFF4361ee), // Blue
       foregroundColor: Colors.white,
       elevation: 0,
     ),
     colorScheme: const ColorScheme.light(
-      primary: Color(0xFF2E7D32), // Dark Green
-      secondary: Color(0xFF388E3C), // Medium Green
+      primary: Color(0xFF4361ee), // Blue
+      secondary: Color(0xFF4895ef), // Lighter Blue
       surface: Colors.white,
-      background: Color(0xFFF1F8E9), // Very Light Green
+      background: Color(0xFFe3f2fd), // Very Light Blue
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onSurface: Colors.black87,
       onBackground: Colors.black87,
     ),
+    // Input decoration theme for forms
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF4361ee)),
+      ),
+    ),
+    // Bottom navigation bar theme
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Colors.white,
+      selectedItemColor: Color(0xFF4361ee),
+      unselectedItemColor: Colors.grey,
+      type: BottomNavigationBarType.fixed,
+    ),
   );
 
   static final _darkTheme = ThemeData(
     brightness: Brightness.dark,
-    primarySwatch: Colors.purple,
-    primaryColor: const Color(0xFF7B1FA2), // Dark Purple
-    scaffoldBackgroundColor: const Color(0xFF1A1A1A),
-    cardColor: const Color(0xFF2D2D2D),
+    primarySwatch: Colors.blue,
+    primaryColor: const Color(0xFF4361ee), // Blue
+    scaffoldBackgroundColor: const Color(0xFF0D1117), // GitHub dark background
+    cardColor: const Color(0xFF161B22), // Slightly lighter dark
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF4A148C), // Deep Purple
+      backgroundColor: Color(0xFF4361ee), // Blue
       foregroundColor: Colors.white,
       elevation: 0,
     ),
     colorScheme: const ColorScheme.dark(
-      primary: Color(0xFF7B1FA2), // Dark Purple
-      secondary: Color(0xFF9C27B0), // Medium Purple
-      surface: Color(0xFF2D2D2D),
-      background: Color(0xFF1A1A1A),
+      primary: Color(0xFF4361ee), // Blue
+      secondary: Color(0xFF4895ef), // Lighter Blue
+      surface: Color(0xFF161B22), // Card background
+      background: Color(0xFF0D1117), // Main background
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onSurface: Colors.white,
       onBackground: Colors.white,
+    ),
+    // Improve text themes for dark mode
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(color: Colors.white),
+      bodyMedium: TextStyle(color: Colors.white70),
+      bodySmall: TextStyle(color: Colors.white60),
+      headlineLarge: TextStyle(color: Colors.white),
+      headlineMedium: TextStyle(color: Colors.white),
+      headlineSmall: TextStyle(color: Colors.white),
+      titleLarge: TextStyle(color: Colors.white),
+      titleMedium: TextStyle(color: Colors.white),
+      titleSmall: TextStyle(color: Colors.white70),
+    ),
+    // Input decoration theme for forms
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFF161B22),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF30363D)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF30363D)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF4361ee)),
+      ),
+    ),
+    // Bottom navigation bar theme
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Color(0xFF161B22),
+      selectedItemColor: Color(0xFF4361ee),
+      unselectedItemColor: Colors.white60,
+      type: BottomNavigationBarType.fixed,
     ),
   );
 }
@@ -174,14 +235,27 @@ class _AuthenticatedAppState extends State<AuthenticatedApp> {
       onToggleTheme: widget.onToggleTheme,
       currentTheme: widget.currentTheme,
     ),
-    const BudgetScreen(),
-    const FinancialGoalsScreen(),
-    const AnalyticsScreen(),
+    BudgetScreen(onToggleTheme: widget.onToggleTheme),
+    FinancialGoalsScreen(onToggleTheme: widget.onToggleTheme),
+    AnalyticsScreen(onToggleTheme: widget.onToggleTheme),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final isNarrow = MediaQuery.of(context).size.width < 800;
+
     return Scaffold(
+      drawer: isNarrow
+          ? AppDrawer(
+              onNavigate: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              currentIndex: _currentIndex,
+              onToggleTheme: widget.onToggleTheme,
+            )
+          : null,
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -1546,11 +1620,11 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
                     ),
                     _buildSuggestionChip(
                       'Saving Tips',
-                      const Color(0xFF7209b7),
+                      const Color(0xFF4361ee),
                     ),
                     _buildSuggestionChip(
                       'SIP Explanation',
-                      const Color(0xFF06d6a0),
+                      const Color(0xFF4361ee),
                     ),
                   ],
                 ),

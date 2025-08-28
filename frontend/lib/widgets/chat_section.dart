@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
 import 'message_bubble.dart';
 import 'expense_modal.dart';
+import '../src/download_helper.dart';
 
 class ChatSection extends StatefulWidget {
   const ChatSection({super.key});
@@ -58,6 +60,7 @@ class _ChatSectionState extends State<ChatSection> {
 
         return Column(
           children: [
+            _buildChatHeader(appState),
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -264,6 +267,121 @@ class _ChatSectionState extends State<ChatSection> {
     );
   }
 
+  Widget _buildChatHeader(AppState appState) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor, width: 1),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'AI Chat (${appState.messages.length} messages)',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          if (appState.messages.length >
+              1) // Don't show if only welcome message
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton.icon(
+                  onPressed: () => _showClearChatDialog(appState),
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Clear'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.orange.shade600,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                TextButton.icon(
+                  onPressed: () => _showDeleteAllChatsDialog(appState),
+                  icon: const Icon(Icons.delete_forever, size: 18),
+                  label: const Text('Delete All'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red.shade600,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showClearChatDialog(AppState appState) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear Chat History'),
+        content: const Text(
+          'Are you sure you want to clear all chat messages? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              appState.clearChatHistory();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Chat history cleared successfully!'),
+                ),
+              );
+            },
+            child: const Text('Clear', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAllChatsDialog(AppState appState) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete All Chat History'),
+        content: const Text(
+          'Are you sure you want to permanently delete all chat messages from the database? This action cannot be undone and will remove all your conversation history.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await appState.clearChatHistory();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('All chat history permanently deleted!'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text(
+              'Delete All',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _sendMessage(AppState appState) {
     final message = _messageController.text.trim();
     if (message.isNotEmpty) {
@@ -272,21 +390,17 @@ class _ChatSectionState extends State<ChatSection> {
     }
   }
 
-  void _handleExpenseAction(String action, dynamic data, AppState appState) {
+  void _handleExpenseAction(
+    String action,
+    dynamic data,
+    AppState appState,
+  ) async {
     switch (action) {
       case 'download_excel':
-        // Handle Excel download
-        appState.addTokens(10);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Excel download started! +10 tokens')),
-        );
+        await _downloadFile('excel', data, appState);
         break;
       case 'download_csv':
-        // Handle CSV download
-        appState.addTokens(5);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('CSV download started! +5 tokens')),
-        );
+        await _downloadFile('csv', data, appState);
         break;
       case 'view_summary':
         // Show expense modal
@@ -296,5 +410,83 @@ class _ChatSectionState extends State<ChatSection> {
         );
         break;
     }
+  }
+
+  Future<void> _downloadFile(
+    String format,
+    dynamic data,
+    AppState appState,
+  ) async {
+    try {
+      // Convert the expense data to the appropriate format
+      String content = '';
+      String filename = '';
+
+      if (data != null && data is Map<String, dynamic>) {
+        if (format == 'excel') {
+          // For Excel, we'll create a simple CSV that can be opened in Excel
+          content = _convertToCSV(data);
+          filename = 'expenses.csv';
+        } else {
+          content = _convertToCSV(data);
+          filename = 'expenses.csv';
+        }
+
+        // Convert string to bytes
+        final bytes = utf8.encode(content);
+
+        // Download the file
+        await downloadBytes(bytes, filename);
+
+        // Add tokens and show success message
+        final tokens = format == 'excel' ? 10 : 5;
+        appState.addTokens(tokens);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${format.toUpperCase()} downloaded successfully! +$tokens tokens',
+              ),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No expense data available to download'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error downloading file: $e')));
+      }
+    }
+  }
+
+  String _convertToCSV(Map<String, dynamic> data) {
+    final buffer = StringBuffer();
+
+    // Add header
+    buffer.writeln('Date,Category,Description,Amount');
+
+    // Add data rows
+    if (data['expenses'] != null && data['expenses'] is List) {
+      for (final expense in data['expenses']) {
+        final date = expense['date'] ?? '';
+        final category = expense['category'] ?? '';
+        final description = expense['description'] ?? '';
+        final amount = expense['amount'] ?? 0;
+
+        buffer.writeln('$date,$category,$description,$amount');
+      }
+    }
+
+    return buffer.toString();
   }
 }
