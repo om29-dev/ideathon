@@ -13,11 +13,8 @@ import 'services/notification_service.dart';
 import 'services/auth_service.dart';
 import 'services/database_service.dart';
 import 'widgets/permission_dialog.dart';
-import 'widgets/app_drawer.dart';
 import 'screens/auth_screen.dart';
-import 'screens/budget_screen.dart';
-import 'screens/financial_goals_screen.dart';
-import 'screens/analytics_screen.dart';
+import 'widgets/enhanced_main_navigation.dart';
 import 'providers/app_state.dart';
 import 'providers/theme_notifier.dart';
 import 'providers/navigation_state.dart';
@@ -109,71 +106,77 @@ class _MyAppState extends State<MyApp> {
 
   static final _lightTheme = ThemeData(
     brightness: Brightness.light,
-    primarySwatch: Colors.blue,
-    primaryColor: const Color(0xFF4361ee), // Blue
-    scaffoldBackgroundColor: const Color(0xFFe3f2fd), // Very Light Blue
+    primarySwatch: Colors.indigo,
+    primaryColor: const Color(0xFF6366F1), // Indigo
+    scaffoldBackgroundColor: const Color(0xFFFAFAFA), // Very light gray
     cardColor: Colors.white,
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF4361ee), // Blue
+      backgroundColor: Color(0xFF6366F1), // Indigo
       foregroundColor: Colors.white,
       elevation: 0,
+      centerTitle: false,
     ),
     colorScheme: const ColorScheme.light(
-      primary: Color(0xFF4361ee), // Blue
-      secondary: Color(0xFF4895ef), // Lighter Blue
+      primary: Color(0xFF6366F1), // Indigo
+      secondary: Color(0xFF8B5CF6), // Purple
       surface: Colors.white,
-      background: Color(0xFFe3f2fd), // Very Light Blue
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onSurface: Colors.black87,
-      onBackground: Colors.black87,
+      error: Color(0xFFEF4444),
+      onError: Colors.white,
     ),
     // Input decoration theme for forms
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.grey),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.grey),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF4361ee)),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
       ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     ),
     // Bottom navigation bar theme
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: Colors.white,
-      selectedItemColor: Color(0xFF4361ee),
-      unselectedItemColor: Colors.grey,
+      selectedItemColor: Color(0xFF6366F1),
+      unselectedItemColor: Color(0xFF6B7280),
       type: BottomNavigationBarType.fixed,
+      elevation: 8,
+      selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
+      unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500),
     ),
   );
 
   static final _darkTheme = ThemeData(
     brightness: Brightness.dark,
-    primarySwatch: Colors.blue,
-    primaryColor: const Color(0xFF4361ee), // Blue
-    scaffoldBackgroundColor: const Color(0xFF0D1117), // GitHub dark background
-    cardColor: const Color(0xFF161B22), // Slightly lighter dark
+    primarySwatch: Colors.indigo,
+    primaryColor: const Color(0xFF6366F1), // Indigo
+    scaffoldBackgroundColor: const Color(0xFF0F0F23), // Dark background
+    cardColor: const Color(0xFF1E1E2E), // Dark surface
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF4361ee), // Blue
+      backgroundColor: Color(0xFF6366F1), // Indigo
       foregroundColor: Colors.white,
       elevation: 0,
+      centerTitle: false,
     ),
     colorScheme: const ColorScheme.dark(
-      primary: Color(0xFF4361ee), // Blue
-      secondary: Color(0xFF4895ef), // Lighter Blue
-      surface: Color(0xFF161B22), // Card background
-      background: Color(0xFF0D1117), // Main background
+      primary: Color(0xFF6366F1), // Indigo
+      secondary: Color(0xFF8B5CF6), // Purple
+      surface: Color(0xFF1E1E2E), // Dark surface
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onSurface: Colors.white,
-      onBackground: Colors.white,
+      error: Color(0xFFEF4444),
+      onError: Colors.white,
     ),
     // Improve text themes for dark mode
     textTheme: const TextTheme(
@@ -190,92 +193,40 @@ class _MyAppState extends State<MyApp> {
     // Input decoration theme for forms
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFF161B22),
+      fillColor: const Color(0xFF1E1E2E),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF30363D)),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFF3A3A4E)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF30363D)),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFF3A3A4E)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF4361ee)),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
       ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     ),
     // Bottom navigation bar theme
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: Color(0xFF161B22),
-      selectedItemColor: Color(0xFF4361ee),
-      unselectedItemColor: Colors.white60,
+      backgroundColor: Color(0xFF1E1E2E),
+      selectedItemColor: Color(0xFF6366F1),
+      unselectedItemColor: Color(0xFF9CA3AF),
       type: BottomNavigationBarType.fixed,
+      elevation: 8,
+      selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
+      unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500),
     ),
   );
 }
 
-class AuthenticatedApp extends StatefulWidget {
+class AuthenticatedApp extends StatelessWidget {
   const AuthenticatedApp({super.key});
 
   @override
-  State<AuthenticatedApp> createState() => _AuthenticatedAppState();
-}
-
-class _AuthenticatedAppState extends State<AuthenticatedApp> {
-  List<Widget> get _screens => [
-    const FinanceAssistantHome(),
-    const BudgetScreen(),
-    const FinancialGoalsScreen(),
-    const AnalyticsScreen(),
-  ];
-
-  @override
   Widget build(BuildContext context) {
-    final isNarrow = MediaQuery.of(context).size.width < 800;
-    final navigationState = context.watch<NavigationState>();
-
-    return Scaffold(
-      drawer: isNarrow
-          ? AppDrawer(
-              onNavigate: (index) {
-                navigationState.setIndex(index);
-              },
-              currentIndex: navigationState.currentIndex,
-            )
-          : null,
-      body: _screens[navigationState.currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: navigationState.currentIndex,
-        onTap: (index) {
-          navigationState.setIndex(index);
-        },
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            activeIcon: Icon(Icons.chat_bubble),
-            label: 'AI Chat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            activeIcon: Icon(Icons.account_balance_wallet),
-            label: 'Budget',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.flag_outlined),
-            activeIcon: Icon(Icons.flag),
-            label: 'Goals',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics_outlined),
-            activeIcon: Icon(Icons.analytics),
-            label: 'Analytics',
-          ),
-        ],
-      ),
-    );
+    return const EnhancedMainNavigation();
   }
 }
 
@@ -373,7 +324,7 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
           debugPrint('Daily notifications enabled');
 
           // Show immediate test notification
-          await NotificationService.showTestNotification();
+          await NotificationService.ensurePermissionThenTest();
           debugPrint('Test notification sent');
 
           if (mounted) {
@@ -889,7 +840,7 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: OutlinedButton.icon(
                 onPressed: () async {
-                  await NotificationService.showTestNotification();
+                  await NotificationService.ensurePermissionThenTest();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(

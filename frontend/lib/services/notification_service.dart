@@ -88,6 +88,8 @@ class NotificationService {
             ?.requestNotificationsPermission();
 
         debugPrint('Notification permission granted: $granted');
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('notification_permission_granted', granted ?? true);
         return granted ?? true; // Default to true if permission check fails
       }
       return true;
@@ -95,6 +97,17 @@ class NotificationService {
       debugPrint('Failed to request notification permissions: $e');
       return true; // Default to true to allow testing
     }
+  }
+
+  /// Ensure permission then show a test notification; prompts if first time
+  static Future<void> ensurePermissionThenTest() async {
+    final prefs = await SharedPreferences.getInstance();
+    final alreadyGranted =
+        prefs.getBool('notification_permission_granted') ?? false;
+    if (!alreadyGranted) {
+      await requestPermissions();
+    }
+    await showTestNotification();
   }
 
   /// Enable daily tip notifications
@@ -211,11 +224,7 @@ class NotificationService {
     final tips = fallbackTips[category] ?? fallbackTips['saving']!;
     final selectedTip = tips[random.nextInt(tips.length)];
 
-    await _showVariedNotification(
-      notificationType['title']!,
-      selectedTip,
-      notificationType['emoji']!,
-    );
+    await _showNotification(selectedTip);
   }
 
   /// Fetch daily tip from backend and show notification

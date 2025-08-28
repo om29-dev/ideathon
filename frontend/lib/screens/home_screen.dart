@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
+import '../providers/theme_notifier.dart';
 import '../widgets/chat_section.dart';
 import '../widgets/profile_section.dart';
 
@@ -57,29 +58,43 @@ class HomeScreen extends StatelessWidget {
                 builder: (context, constraints) {
                   if (MediaQuery.of(context).size.width < 400) {
                     // Small screen - icon only
-                    return IconButton(
-                      onPressed: () => appState.cycleTheme(),
-                      icon: Text(
-                        appState.getThemeIcon(),
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                      tooltip: 'Change Theme',
+                    return Consumer<ThemeNotifier>(
+                      builder: (context, themeNotifier, child) {
+                        return IconButton(
+                          onPressed: () => themeNotifier.toggleTheme(),
+                          icon: Text(
+                            themeNotifier.themeMode == ThemeMode.dark
+                                ? '🌙'
+                                : '☀️',
+                            style: const TextStyle(fontSize: 20),
+                          ),
+                          tooltip: 'Toggle Theme',
+                        );
+                      },
                     );
                   } else {
                     // Larger screen - icon with label
-                    return ElevatedButton.icon(
-                      onPressed: () => appState.cycleTheme(),
-                      icon: Text(
-                        appState.getThemeIcon(),
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      label: const Text('Theme'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.surface,
-                        foregroundColor: Theme.of(
-                          context,
-                        ).textTheme.bodyLarge?.color,
-                      ),
+                    return Consumer<ThemeNotifier>(
+                      builder: (context, themeNotifier, child) {
+                        return ElevatedButton.icon(
+                          onPressed: () => themeNotifier.toggleTheme(),
+                          icon: Text(
+                            themeNotifier.themeMode == ThemeMode.dark
+                                ? '🌙'
+                                : '☀️',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          label: const Text('Theme'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.surface,
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.onSurface,
+                          ),
+                        );
+                      },
                     );
                   }
                 },

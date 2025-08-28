@@ -31,9 +31,9 @@ class MessageBubble extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -48,7 +48,11 @@ class MessageBubble extends StatelessWidget {
               '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
                 fontSize: 12,
-                color: _getTextColor(context, isUser, isError).withOpacity(0.7),
+                color: _getTextColor(
+                  context,
+                  isUser,
+                  isError,
+                ).withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -59,7 +63,7 @@ class MessageBubble extends StatelessWidget {
 
   Color _getBubbleColor(BuildContext context, bool isUser, bool isError) {
     if (isError) {
-      return Colors.red.withOpacity(0.1);
+      return Colors.red.withValues(alpha: 0.1);
     }
     if (isUser) {
       return Theme.of(context).primaryColor;

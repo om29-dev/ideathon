@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
+import '../models/message.dart';
 import 'message_bubble.dart';
 import 'expense_modal.dart';
 import '../src/download_helper.dart';
@@ -111,7 +112,7 @@ class _ChatSectionState extends State<ChatSection> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -168,9 +169,9 @@ class _ChatSectionState extends State<ChatSection> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -190,54 +191,132 @@ class _ChatSectionState extends State<ChatSection> {
         appState.connectionStatus == ConnectionStatus.disconnected;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width > 600 ? 24 : 16,
+        vertical: MediaQuery.of(context).size.width > 600 ? 24 : 16,
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         border: Border(
-          top: BorderSide(color: Theme.of(context).dividerColor, width: 1),
+          top: BorderSide(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+            width: 1,
+          ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _messageController,
-                  enabled: !isDisabled,
-                  decoration: InputDecoration(
-                    hintText:
-                        'Ask about student budgeting, investments, or track expenses...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
+          Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width > 600
+                  ? 800
+                  : double.infinity,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    enabled: !isDisabled,
+                    decoration: InputDecoration(
+                      hintText:
+                          'Ask about student budgeting, investments, or track expenses...',
+                      hintStyle: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(28),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: Theme.of(context).scaffoldBackgroundColor,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width > 600
+                            ? 24
+                            : 20,
+                        vertical: MediaQuery.of(context).size.width > 600
+                            ? 20
+                            : 16,
+                      ),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                    onSubmitted: !isDisabled
+                        ? (_) => _sendMessage(appState)
+                        : null,
+                  ),
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width > 600 ? 16 : 12,
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width > 600 ? 64 : 56,
+                  height: MediaQuery.of(context).size.width > 600 ? 64 : 56,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).primaryColor,
+                          Theme.of(context).primaryColor.withValues(alpha: 0.8),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(
+                            context,
+                          ).primaryColor.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed:
+                          !isDisabled &&
+                              _messageController.text.trim().isNotEmpty
+                          ? () => _sendMessage(appState)
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: const CircleBorder(),
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        fixedSize: Size(
+                          MediaQuery.of(context).size.width > 600 ? 64 : 56,
+                          MediaQuery.of(context).size.width > 600 ? 64 : 56,
+                        ),
+                      ),
+                      child: Icon(
+                        appState.isLoading ? Icons.hourglass_empty : Icons.send,
+                        color: Colors.white,
+                        size: MediaQuery.of(context).size.width > 600 ? 28 : 24,
+                      ),
                     ),
                   ),
-                  onSubmitted: !isDisabled
-                      ? (_) => _sendMessage(appState)
-                      : null,
                 ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed:
-                    !isDisabled && _messageController.text.trim().isNotEmpty
-                    ? () => _sendMessage(appState)
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  shape: const CircleBorder(),
-                  padding: const EdgeInsets.all(16),
-                ),
-                child: Icon(
-                  appState.isLoading ? Icons.hourglass_empty : Icons.send,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           _buildQuickSuggestions(appState),
         ],
       ),
@@ -268,6 +347,10 @@ class _ChatSectionState extends State<ChatSection> {
   }
 
   Widget _buildChatHeader(AppState appState) {
+    final hasExpenseMessages = appState.messages.any(
+      (message) => message.hasExpenses,
+    );
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -279,17 +362,55 @@ class _ChatSectionState extends State<ChatSection> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'AI Chat (${appState.messages.length} messages)',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          Expanded(
+            child: Text(
+              'AI Chat (${appState.messages.length} messages)',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-          if (appState.messages.length >
-              1) // Don't show if only welcome message
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Show export button if there are any expense messages
+              if (hasExpenseMessages) ...[
+                ElevatedButton.icon(
+                  onPressed: () => _exportAllExpenses(appState),
+                  icon: const Icon(Icons.download, size: 18),
+                  label: const Text('Export All'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade50,
+                    foregroundColor: Colors.green.shade700,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              // Add sample expense button for testing
+              if (!hasExpenseMessages) ...[
+                ElevatedButton.icon(
+                  onPressed: () => _addSampleExpense(appState),
+                  icon: const Icon(Icons.add_card, size: 18),
+                  label: const Text('Try Sample'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade50,
+                    foregroundColor: Colors.blue.shade700,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              if (appState.messages.length > 1) ...[
                 TextButton.icon(
                   onPressed: () => _showClearChatDialog(appState),
                   icon: const Icon(Icons.refresh, size: 18),
@@ -310,7 +431,8 @@ class _ChatSectionState extends State<ChatSection> {
                   ),
                 ),
               ],
-            ),
+            ],
+          ),
         ],
       ),
     );
@@ -319,38 +441,146 @@ class _ChatSectionState extends State<ChatSection> {
   void _showClearChatDialog(AppState appState) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear Chat History'),
-        content: const Text(
-          'Are you sure you want to clear all chat messages? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.refresh, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('Clear Chat'),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              appState.clearChatHistory();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Chat history cleared successfully!'),
-                ),
-              );
-            },
-            child: const Text('Clear', style: TextStyle(color: Colors.red)),
+          content: const Text(
+            'Are you sure you want to clear all messages? This action cannot be undone.',
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                appState.clearMessages();
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Chat cleared!')));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Clear'),
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  void _exportAllExpenses(AppState appState) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.download, color: Colors.green),
+              SizedBox(width: 8),
+              Text('Export Expenses'),
+            ],
+          ),
+          content: const Text(
+            'Choose export format for all detected expenses:',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _exportCombinedExpenses(appState, 'csv');
+              },
+              icon: const Icon(Icons.table_chart, size: 16),
+              label: const Text('CSV'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade50,
+                foregroundColor: Colors.blue.shade700,
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _exportCombinedExpenses(appState, 'excel');
+              },
+              icon: const Icon(Icons.description, size: 16),
+              label: const Text('Excel'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green.shade50,
+                foregroundColor: Colors.green.shade700,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _exportCombinedExpenses(AppState appState, String format) async {
+    try {
+      // Collect all expense data from messages
+      final allExpenses = <Map<String, dynamic>>[];
+
+      for (final message in appState.messages) {
+        if (message.hasExpenses && message.excelData != null) {
+          final expenseData = message.excelData!;
+          if (expenseData['expenses'] is List) {
+            allExpenses.addAll(
+              List<Map<String, dynamic>>.from(expenseData['expenses']),
+            );
+          }
+        }
+      }
+
+      if (allExpenses.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No expenses found to export')),
+        );
+        return;
+      }
+
+      // Create combined expense data
+      final combinedData = {
+        'expenses': allExpenses,
+        'total': allExpenses.fold<double>(
+          0,
+          (sum, expense) => sum + (expense['amount'] ?? 0),
+        ),
+        'count': allExpenses.length,
+      };
+
+      await _downloadFile(format, combinedData, appState);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+    }
   }
 
   void _showDeleteAllChatsDialog(AppState appState) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete All Chat History'),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_forever, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Delete All Chat History'),
+          ],
+        ),
         content: const Text(
           'Are you sure you want to permanently delete all chat messages from the database? This action cannot be undone and will remove all your conversation history.',
         ),
@@ -378,6 +608,53 @@ class _ChatSectionState extends State<ChatSection> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _addSampleExpense(AppState appState) {
+    // Add a sample expense message to demonstrate the export functionality
+    final sampleExpenseData = {
+      'expenses': [
+        {
+          'date': '2025-08-28',
+          'description': 'Lunch at Restaurant',
+          'amount': 450.0,
+          'category': 'Food & Dining',
+        },
+        {
+          'date': '2025-08-28',
+          'description': 'Uber ride',
+          'amount': 120.0,
+          'category': 'Transportation',
+        },
+        {
+          'date': '2025-08-27',
+          'description': 'Grocery shopping',
+          'amount': 800.0,
+          'category': 'Food & Dining',
+        },
+      ],
+      'total': 1370.0,
+      'count': 3,
+    };
+
+    final sampleMessage = Message(
+      id: DateTime.now().millisecondsSinceEpoch,
+      text:
+          '📊 **Sample Expense Analysis**\n\nI found 3 expenses in your sample data:\n\n• 🍽️ **Lunch at Restaurant** - ₹450 (Food & Dining)\n• 🚗 **Uber ride** - ₹120 (Transportation)\n• 🛒 **Grocery shopping** - ₹800 (Food & Dining)\n\n**Total Amount:** ₹1,370\n\nUse the buttons below to download your expense report!',
+      sender: MessageSender.bot,
+      timestamp: DateTime.now(),
+      hasExpenses: true,
+      excelData: sampleExpenseData,
+    );
+
+    appState.addMessage(sampleMessage);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Sample expenses added! Try the export buttons below.'),
+        backgroundColor: Colors.green,
       ),
     );
   }

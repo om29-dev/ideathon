@@ -276,6 +276,28 @@ class AppState extends ChangeNotifier {
   void checkHealth() {
     _checkBackendHealth();
   }
+
+  void clearMessages() {
+    _messages.clear();
+    // Keep welcome message
+    _messages.add(
+      Message(
+        id: 0,
+        text:
+            'Hi! I\'m your AI Finance Assistant. Ask me about expenses, budgeting, or share your financial transactions and I\'ll help track them! 💰',
+        sender: MessageSender.bot,
+        timestamp: DateTime.now(),
+      ),
+    );
+    notifyListeners();
+    _saveUserData();
+  }
+
+  void addMessage(Message message) {
+    _messages.add(message);
+    notifyListeners();
+    _saveChatMessage(message);
+  }
 }
 
 class NiftyDataPoint {

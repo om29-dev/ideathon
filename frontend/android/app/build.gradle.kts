@@ -7,7 +7,8 @@ plugins {
 
 android {
     namespace = "com.example.finance_assistant_flutter"
-    compileSdk = flutter.compileSdkVersion
+    // Override to 36 because camera_android plugin requires >=36 (backward compatible)
+    compileSdk = 36
     // Ensure we use the highest NDK required by plugins (backward compatible)
     ndkVersion = "27.0.12077973"
 

@@ -214,12 +214,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 ],
               ),
             ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: _showAddBudgetDialog,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Budget'),
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
       ),
     );
   }
