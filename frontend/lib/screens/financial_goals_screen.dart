@@ -5,9 +5,12 @@ import '../widgets/goal_card.dart';
 import '../widgets/add_goal_dialog.dart';
 import '../widgets/edit_goal_dialog.dart';
 import '../widgets/update_progress_dialog.dart';
+import '../widgets/custom_app_bar.dart';
 
 class FinancialGoalsScreen extends StatefulWidget {
-  const FinancialGoalsScreen({super.key});
+  final VoidCallback? onToggleTheme;
+
+  const FinancialGoalsScreen({super.key, this.onToggleTheme});
 
   @override
   State<FinancialGoalsScreen> createState() => _FinancialGoalsScreenState();
@@ -87,12 +90,10 @@ class _FinancialGoalsScreenState extends State<FinancialGoalsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('🎯 Financial Goals'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
+      appBar: CustomAppBar(
+        title: '🎯 Financial Goals',
+        onToggleTheme: widget.onToggleTheme,
+        additionalActions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadGoals,
@@ -117,8 +118,8 @@ class _FinancialGoalsScreenState extends State<FinancialGoalsScreen> {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.green.shade600,
-                            Colors.green.shade400,
+                            const Color(0xFF4361ee),
+                            const Color(0xFF4895ef),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(16),
@@ -224,7 +225,7 @@ class _FinancialGoalsScreenState extends State<FinancialGoalsScreen> {
         onPressed: _showAddGoalDialog,
         icon: const Icon(Icons.add),
         label: const Text('Add Goal'),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
       ),
     );
@@ -315,7 +316,7 @@ class _FinancialGoalsScreenState extends State<FinancialGoalsScreen> {
             icon: const Icon(Icons.add),
             label: const Text('Create Goal'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: Theme.of(context).primaryColor,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),

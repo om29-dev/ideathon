@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../models/budget.dart';
 import '../services/database_service.dart';
-import '../providers/app_state.dart';
 import '../widgets/budget_card.dart';
 import '../widgets/add_budget_dialog.dart';
+import '../widgets/edit_budget_dialog.dart';
+import '../widgets/custom_app_bar.dart';
 
 class BudgetScreen extends StatefulWidget {
-  const BudgetScreen({super.key});
+  final VoidCallback? onToggleTheme;
+
+  const BudgetScreen({super.key, this.onToggleTheme});
 
   @override
   State<BudgetScreen> createState() => _BudgetScreenState();
@@ -97,15 +99,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('💰 Budget Management'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
+      appBar: CustomAppBar(
+        title: '💰 Budget Management',
+        onToggleTheme: widget.onToggleTheme,
+        additionalActions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadBudgets,
@@ -407,11 +405,29 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 
-  void _editBudget(Budget budget) {
-    // TODO: Implement edit budget functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Edit budget feature coming soon!')),
+  void _editBudget(Budget budget) async {
+    final result = await showDialog<Budget>(
+      context: context,
+      builder: (context) => EditBudgetDialog(budget: budget),
     );
+
+    if (result != null) {
+      try {
+        await _databaseService.updateBudget(result);
+        _loadBudgets();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Budget updated successfully!')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error updating budget: $e')));
+        }
+      }
+    }
   }
 
   void _deleteBudget(Budget budget) {
@@ -428,14 +444,27 @@ class _BudgetScreenState extends State<BudgetScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              // TODO: Implement delete budget functionality
+            onPressed: () async {
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Delete budget feature coming soon!'),
-                ),
-              );
+              try {
+                await _databaseService.deleteBudget(budget.id!);
+                _loadBudgets();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '${budget.category} budget deleted successfully!',
+                      ),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error deleting budget: $e')),
+                  );
+                }
+              }
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
