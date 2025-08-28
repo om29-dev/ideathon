@@ -137,17 +137,8 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
 
   void _navigateToMainApp() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => AuthenticatedApp(
-          onToggleTheme: _dummyToggleTheme,
-          currentTheme: ThemeMode.light,
-        ),
-      ),
+      MaterialPageRoute(builder: (context) => const AuthenticatedApp()),
     );
-  }
-
-  void _dummyToggleTheme() {
-    // This is a placeholder - theme toggle will be handled by main app
   }
 
   void _showErrorSnackBar(String message) {

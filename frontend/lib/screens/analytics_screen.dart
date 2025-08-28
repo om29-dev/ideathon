@@ -4,9 +4,7 @@ import '../models/expense.dart';
 import '../widgets/custom_app_bar.dart';
 
 class AnalyticsScreen extends StatefulWidget {
-  final VoidCallback? onToggleTheme;
-
-  const AnalyticsScreen({super.key, this.onToggleTheme});
+  const AnalyticsScreen({super.key});
 
   @override
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
@@ -90,7 +88,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         title: '📊 Analytics',
-        onToggleTheme: widget.onToggleTheme,
         additionalActions: [
           IconButton(
             icon: const Icon(Icons.refresh),

@@ -8,9 +8,7 @@ import '../widgets/update_progress_dialog.dart';
 import '../widgets/custom_app_bar.dart';
 
 class FinancialGoalsScreen extends StatefulWidget {
-  final VoidCallback? onToggleTheme;
-
-  const FinancialGoalsScreen({super.key, this.onToggleTheme});
+  const FinancialGoalsScreen({super.key});
 
   @override
   State<FinancialGoalsScreen> createState() => _FinancialGoalsScreenState();
@@ -92,7 +90,6 @@ class _FinancialGoalsScreenState extends State<FinancialGoalsScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         title: '🎯 Financial Goals',
-        onToggleTheme: widget.onToggleTheme,
         additionalActions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -107,83 +104,91 @@ class _FinancialGoalsScreenState extends State<FinancialGoalsScreen> {
               onRefresh: _loadGoals,
               child: Column(
                 children: [
-                  // Summary Card
-                  if (_activeGoals.isNotEmpty)
-                    Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.all(16),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            const Color(0xFF4361ee),
-                            const Color(0xFF4895ef),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
+                  // Summary Card - Show always, not just when activeGoals exist
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF4361ee),
+                          const Color(0xFF4895ef),
                         ],
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Goals Progress Overview',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Goals Progress Overview',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _buildSummaryItem(
-                                'Active Goals',
-                                '${_activeGoals.length}',
-                                Colors.white,
-                              ),
-                              _buildSummaryItem(
-                                'Total Target',
-                                '₹${_totalTargetAmount.toStringAsFixed(0)}',
-                                Colors.white,
-                              ),
-                              _buildSummaryItem(
-                                'Total Saved',
-                                '₹${_totalCurrentAmount.toStringAsFixed(0)}',
-                                Colors.white,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          LinearProgressIndicator(
-                            value: _totalTargetAmount > 0
-                                ? _totalCurrentAmount / _totalTargetAmount
-                                : 0,
-                            backgroundColor: Colors.white.withOpacity(0.3),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildSummaryItem(
+                              'Active',
+                              '${_activeGoals.length}',
                               Colors.white,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${(_totalTargetAmount > 0 ? (_totalCurrentAmount / _totalTargetAmount * 100) : 0).toStringAsFixed(1)}% of total goals achieved',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
+                            _buildSummaryItem(
+                              'Completed',
+                              '${_completedGoals.length}',
+                              Colors.white,
                             ),
+                            _buildSummaryItem(
+                              'Total Target',
+                              '₹${_totalTargetAmount.toStringAsFixed(0)}',
+                              Colors.white,
+                            ),
+                            _buildSummaryItem(
+                              'Total Saved',
+                              '₹${_totalCurrentAmount.toStringAsFixed(0)}',
+                              Colors.white,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        LinearProgressIndicator(
+                          value: _totalTargetAmount > 0
+                              ? _totalCurrentAmount / _totalTargetAmount
+                              : 0,
+                          backgroundColor: Colors.white.withOpacity(0.3),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            _activeGoals.isEmpty
+                                ? Colors.white.withOpacity(0.5)
+                                : Colors.white,
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _activeGoals.isEmpty
+                              ? 'Start by creating your first financial goal!'
+                              : '${(_totalTargetAmount > 0 ? (_totalCurrentAmount / _totalTargetAmount * 100) : 0).toStringAsFixed(1)}% of total goals achieved',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
 
                   // Goals List
                   Expanded(

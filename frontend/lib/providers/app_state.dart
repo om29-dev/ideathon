@@ -170,6 +170,14 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void toggleTheme() {
+    _currentTheme = _currentTheme == AppTheme.light
+        ? AppTheme.dark
+        : AppTheme.light;
+    _saveUserData();
+    notifyListeners();
+  }
+
   String getThemeIcon() {
     switch (_currentTheme) {
       case AppTheme.light:

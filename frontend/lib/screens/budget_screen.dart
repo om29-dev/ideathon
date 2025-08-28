@@ -7,9 +7,7 @@ import '../widgets/edit_budget_dialog.dart';
 import '../widgets/custom_app_bar.dart';
 
 class BudgetScreen extends StatefulWidget {
-  final VoidCallback? onToggleTheme;
-
-  const BudgetScreen({super.key, this.onToggleTheme});
+  const BudgetScreen({super.key});
 
   @override
   State<BudgetScreen> createState() => _BudgetScreenState();
@@ -102,7 +100,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         title: '💰 Budget Management',
-        onToggleTheme: widget.onToggleTheme,
         additionalActions: [
           IconButton(
             icon: const Icon(Icons.refresh),

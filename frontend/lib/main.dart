@@ -19,6 +19,8 @@ import 'screens/budget_screen.dart';
 import 'screens/financial_goals_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'providers/app_state.dart';
+import 'providers/theme_notifier.dart';
+import 'providers/navigation_state.dart';
 
 String _backendHost() {
   if (kIsWeb) return 'localhost';
@@ -55,27 +57,29 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  ThemeMode _themeMode = ThemeMode.light;
-
-  void toggleTheme() {
-    setState(() {
-      _themeMode = _themeMode == ThemeMode.light
-          ? ThemeMode.dark
-          : ThemeMode.light;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AppState(widget.prefs),
-      child: MaterialApp(
-        title: 'AI Finance Assistant',
-        debugShowCheckedModeBanner: false,
-        theme: _lightTheme,
-        darkTheme: _darkTheme,
-        themeMode: _themeMode,
-        home: FutureBuilder<bool>(
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AppState(widget.prefs)),
+        ChangeNotifierProvider(
+          create: (context) => ThemeNotifier(widget.prefs),
+        ),
+        ChangeNotifierProvider(create: (context) => NavigationState()),
+      ],
+      child: Selector<ThemeNotifier, ThemeMode>(
+        selector: (context, themeNotifier) => themeNotifier.themeMode,
+        builder: (context, themeMode, child) {
+          return MaterialApp(
+            title: 'AI Finance Assistant',
+            debugShowCheckedModeBanner: false,
+            theme: _lightTheme,
+            darkTheme: _darkTheme,
+            themeMode: themeMode,
+            home: child,
+          );
+        },
+        child: FutureBuilder<bool>(
           future: _checkAuthenticationStatus(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -85,10 +89,7 @@ class _MyAppState extends State<MyApp> {
             }
 
             if (snapshot.data == true) {
-              return AuthenticatedApp(
-                onToggleTheme: toggleTheme,
-                currentTheme: _themeMode,
-              );
+              return const AuthenticatedApp();
             } else {
               return const AuthScreen();
             }
@@ -214,56 +215,40 @@ class _MyAppState extends State<MyApp> {
 }
 
 class AuthenticatedApp extends StatefulWidget {
-  final VoidCallback onToggleTheme;
-  final ThemeMode currentTheme;
-
-  const AuthenticatedApp({
-    super.key,
-    required this.onToggleTheme,
-    required this.currentTheme,
-  });
+  const AuthenticatedApp({super.key});
 
   @override
   State<AuthenticatedApp> createState() => _AuthenticatedAppState();
 }
 
 class _AuthenticatedAppState extends State<AuthenticatedApp> {
-  int _currentIndex = 0;
-
   List<Widget> get _screens => [
-    FinanceAssistantHome(
-      onToggleTheme: widget.onToggleTheme,
-      currentTheme: widget.currentTheme,
-    ),
-    BudgetScreen(onToggleTheme: widget.onToggleTheme),
-    FinancialGoalsScreen(onToggleTheme: widget.onToggleTheme),
-    AnalyticsScreen(onToggleTheme: widget.onToggleTheme),
+    const FinanceAssistantHome(),
+    const BudgetScreen(),
+    const FinancialGoalsScreen(),
+    const AnalyticsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     final isNarrow = MediaQuery.of(context).size.width < 800;
+    final navigationState = context.watch<NavigationState>();
 
     return Scaffold(
       drawer: isNarrow
           ? AppDrawer(
               onNavigate: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
+                navigationState.setIndex(index);
               },
-              currentIndex: _currentIndex,
-              onToggleTheme: widget.onToggleTheme,
+              currentIndex: navigationState.currentIndex,
             )
           : null,
-      body: _screens[_currentIndex],
+      body: _screens[navigationState.currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        currentIndex: _currentIndex,
+        currentIndex: navigationState.currentIndex,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          navigationState.setIndex(index);
         },
         selectedItemColor: Theme.of(context).primaryColor,
         unselectedItemColor: Colors.grey,
@@ -295,14 +280,7 @@ class _AuthenticatedAppState extends State<AuthenticatedApp> {
 }
 
 class FinanceAssistantHome extends StatefulWidget {
-  final VoidCallback? onToggleTheme;
-  final ThemeMode? currentTheme;
-
-  const FinanceAssistantHome({
-    super.key,
-    this.onToggleTheme,
-    this.currentTheme,
-  });
+  const FinanceAssistantHome({super.key});
 
   @override
   State<FinanceAssistantHome> createState() => _FinanceAssistantHomeState();
@@ -700,7 +678,7 @@ class _FinanceAssistantHomeState extends State<FinanceAssistantHome> {
               color: Colors.white,
             ),
             onPressed: () {
-              widget.onToggleTheme?.call();
+              context.read<ThemeNotifier>().toggleTheme();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(

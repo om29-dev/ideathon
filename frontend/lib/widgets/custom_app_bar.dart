@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_notifier.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? additionalActions;
-  final VoidCallback? onToggleTheme;
   final VoidCallback? onProfileTap;
 
   const CustomAppBar({
     super.key,
     required this.title,
     this.additionalActions,
-    this.onToggleTheme,
     this.onProfileTap,
   });
 
@@ -52,7 +52,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             color: Colors.white,
           ),
           onPressed: () {
-            onToggleTheme?.call();
+            context.read<ThemeNotifier>().toggleTheme();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(

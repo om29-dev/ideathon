@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
+import '../providers/theme_notifier.dart';
 import '../services/notification_service.dart';
 
 class AppDrawer extends StatefulWidget {
   final Function(int) onNavigate;
   final int currentIndex;
-  final VoidCallback? onToggleTheme;
 
   const AppDrawer({
     super.key,
     required this.onNavigate,
     required this.currentIndex,
-    this.onToggleTheme,
   });
 
   @override
@@ -234,7 +233,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     leading: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
                     title: Text(isDark ? 'Light Mode' : 'Dark Mode'),
                     onTap: () {
-                      widget.onToggleTheme?.call();
+                      context.read<ThemeNotifier>().toggleTheme();
                       Navigator.pop(context);
                     },
                   ),
